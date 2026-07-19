@@ -38,8 +38,11 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
     private static final Component GROUP = Component.translatable("message.voicechat.group");
     public static final Component ADJUST_PLAYER_VOLUMES = Component.translatable("message.voicechat.adjust_volumes");
 
-    private ToggleImageButton mute;
-    private ToggleImageButton disable;
+    private Button btnMute;
+    private Button btnDisable;
+    private Button btnHide;
+    @Nullable
+    private Button btnRecord;
     private HoverArea recordingHoverArea;
 
     private ClientPlayerStateManager stateManager;
@@ -54,65 +57,84 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
         super.init();
         @Nullable ClientVoicechat client = ClientManager.getClient();
 
-        mute = new ToggleImageButton(guiLeft + 6, guiTop + ySize - 6 - 20, MICROPHONE, stateManager::isMuted, button -> {
+        int mainAreaX = 131;
+        int mainAreaWidth = width - 131;
+        int buttonWidth = 200;
+        int buttonHeight = 20;
+        int startX = mainAreaX + (mainAreaWidth - buttonWidth) / 2;
+        int startY = 60;
+
+        btnMute = Button.builder(Component.empty(), button -> {
             stateManager.setMuted(!stateManager.isMuted());
-        }, new MuteTooltipSupplier(this, stateManager));
-        addRenderableWidget(mute);
+            updateButtonTexts();
+        }).bounds(startX, startY, buttonWidth, buttonHeight).build();
+        addRenderableWidget(btnMute);
 
-        disable = new ToggleImageButton(guiLeft + 6 + 20 + 2, guiTop + ySize - 6 - 20, SPEAKER, stateManager::isDisabled, button -> {
+        btnDisable = Button.builder(Component.empty(), button -> {
             stateManager.setDisabled(!stateManager.isDisabled());
-        }, new DisableTooltipSupplier(this, stateManager));
-        addRenderableWidget(disable);
+            updateButtonTexts();
+        }).bounds(startX, startY + 25, buttonWidth, buttonHeight).build();
+        addRenderableWidget(btnDisable);
 
-        ImageButton volumes = new ImageButton(guiLeft + 6 + 20 + 2 + 20 + 2, guiTop + ySize - 6 - 20, VOLUMES, button -> {
-            minecraft.setScreen(new AdjustVolumesScreen());
-        }, (button, guiGraphics, font, mouseX, mouseY) -> {
-            guiGraphics.renderTooltip(font, ADJUST_PLAYER_VOLUMES, mouseX, mouseY);
-        });
-        addRenderableWidget(volumes);
+        btnHide = Button.builder(Component.empty(), button -> {
+            boolean newVal = !VoicechatClient.CLIENT_CONFIG.hideIcons.get();
+            VoicechatClient.CLIENT_CONFIG.hideIcons.set(newVal).save();
+            updateButtonTexts();
+        }).bounds(startX, startY + 50, buttonWidth, buttonHeight).build();
+        addRenderableWidget(btnHide);
 
         if (client != null && VoicechatClient.CLIENT_CONFIG.useNatives.get()) {
             if (client.getRecorder() != null || (client.getConnection() != null && client.getConnection().getData().allowRecording())) {
-                ToggleImageButton record = new ToggleImageButton(guiLeft + xSize - 6 - 20 - 2 - 20, guiTop + ySize - 6 - 20, RECORD, () -> ClientManager.getClient() != null && ClientManager.getClient().getRecorder() != null, button -> toggleRecording(), new RecordingTooltipSupplier(this));
-                addRenderableWidget(record);
+                btnRecord = Button.builder(Component.empty(), button -> {
+                    toggleRecording();
+                    updateButtonTexts();
+                }).bounds(startX, startY + 75, buttonWidth, buttonHeight).build();
+                addRenderableWidget(btnRecord);
             }
         }
 
-        ToggleImageButton hide = new ToggleImageButton(guiLeft + xSize - 6 - 20, guiTop + ySize - 6 - 20, HIDE, VoicechatClient.CLIENT_CONFIG.hideIcons::get, button -> {
-            VoicechatClient.CLIENT_CONFIG.hideIcons.set(!VoicechatClient.CLIENT_CONFIG.hideIcons.get()).save();
-        }, new HideTooltipSupplier(this));
-        addRenderableWidget(hide);
+        int relStartX = startX - guiLeft;
+        int relStartY = startY - guiTop;
+        recordingHoverArea = new HoverArea(relStartX, relStartY + 100, buttonWidth, 20);
 
-        Button settings = Button.builder(SETTINGS, button -> {
-            minecraft.setScreen(new VoiceChatSettingsScreen());
-        }).bounds(guiLeft + 6, guiTop + 6 + 15, 75, 20).build();
-        addRenderableWidget(settings);
-
-        Button group = Button.builder(GROUP, button -> {
-            ClientGroup g = stateManager.getGroup();
-            if (g != null) {
-                minecraft.setScreen(new GroupScreen(g));
-            } else {
-                minecraft.setScreen(new JoinGroupScreen());
-            }
-        }).bounds(guiLeft + xSize - 6 - 75 + 1, guiTop + 6 + 15, 75, 20).build();
-        addRenderableWidget(group);
-
-        group.active = client != null && client.getConnection() != null && client.getConnection().getData().groupsEnabled();
-        recordingHoverArea = new HoverArea(6 + 20 + 2 + 20 + 2 + 20 + 2, ySize - 6 - 20, xSize - ((6 + 20 + 2 + 20 + 2) * 2 + 20 + 2), 20);
-
+        updateButtonTexts();
         checkButtons();
+    }
+
+    private void updateButtonTexts() {
+        if (btnMute != null) {
+            String state = stateManager.isMuted() ? "SILENCIADO" : "ACTIVO";
+            btnMute.setMessage(Component.literal("Micrófono: " + state));
+        }
+        if (btnDisable != null) {
+            String state = stateManager.isDisabled() ? "DESACTIVADO" : "ACTIVO";
+            btnDisable.setMessage(Component.literal("Sonido: " + state));
+        }
+        if (btnHide != null) {
+            String state = VoicechatClient.CLIENT_CONFIG.hideIcons.get() ? "OCULTOS" : "VISIBLES";
+            btnHide.setMessage(Component.literal("Iconos HUD: " + state));
+        }
+        if (btnRecord != null) {
+            boolean recording = ClientManager.getClient() != null && ClientManager.getClient().getRecorder() != null;
+            String state = recording ? "DETENER" : "INICIAR";
+            btnRecord.setMessage(Component.literal("Grabación de Audio: " + state));
+        }
     }
 
     @Override
     public void tick() {
         super.tick();
+        updateButtonTexts();
         checkButtons();
     }
 
     private void checkButtons() {
-        mute.active = MuteTooltipSupplier.canMuteMic();
-        disable.active = stateManager.canEnable();
+        if (btnMute != null) {
+            btnMute.active = MuteTooltipSupplier.canMuteMic();
+        }
+        if (btnDisable != null) {
+            btnDisable.active = stateManager.canEnable();
+        }
     }
 
     private void toggleRecording() {
@@ -134,16 +156,11 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
+        // Transparent modern full screen background is rendered by the parent class. No blit needed.
     }
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        int titleWidth = font.width(TITLE);
-        guiGraphics.drawString(font, TITLE.getVisualOrderText(), guiLeft + (xSize - titleWidth) / 2, guiTop + 7, FONT_COLOR, false);
-
         ClientVoicechat client = ClientManager.getClient();
         if (client != null && client.getRecorder() != null) {
             AudioRecorder recorder = client.getRecorder();

@@ -69,17 +69,12 @@ public class AdjustVolumesScreen extends ListScreenBase {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, HEADER_SIZE);
-        for (int i = 0; i < units; i++) {
-            guiGraphics.blit(TEXTURE, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * i, 0, HEADER_SIZE, xSize, UNIT_SIZE);
-        }
-        guiGraphics.blit(TEXTURE, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * units, 0, HEADER_SIZE + UNIT_SIZE, xSize, FOOTER_SIZE);
-        guiGraphics.blit(TEXTURE, guiLeft + 10, guiTop + HEADER_SIZE + 6 - 2, xSize, 0, 12, 12);
+        // No texture blitting. Transparent modern full screen background is rendered by parent.
     }
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawString(font, TITLE, width / 2 - font.width(TITLE) / 2, guiTop + 5, VoiceChatScreenBase.FONT_COLOR, false);
+        guiGraphics.drawString(font, TITLE, width / 2 - font.width(TITLE) / 2, guiTop + 5, 0xFFFFFFFF, false);
         if (!volumeList.isEmpty()) {
             volumeList.render(guiGraphics, mouseX, mouseY, delta);
         } else if (!searchBox.getValue().isEmpty()) {
