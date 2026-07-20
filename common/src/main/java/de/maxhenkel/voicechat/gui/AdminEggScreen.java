@@ -31,6 +31,9 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     public static boolean megaphoneActive = false;
     public static boolean channelActive = false;
 
+    public static String lastPlayedSound = "Ninguno";
+    public static String lastPlayedTargets = "Nadie";
+
     private int soundOffset = 0;
     private int playerOffset = 0;
 
@@ -60,6 +63,8 @@ public class AdminEggScreen extends VoiceChatScreenBase {
             if (!selectedPlayers.isEmpty() && minecraft.player != null) {
                 String targets = String.join(" ", selectedPlayers);
                 minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop " + targets);
+                lastPlayedSound = "Ninguno";
+                lastPlayedTargets = "Nadie";
             }
         });
         addRenderableWidget(stopButton);
@@ -70,6 +75,8 @@ public class AdminEggScreen extends VoiceChatScreenBase {
                 String targets = String.join(" ", selectedPlayers);
                 if (minecraft.player != null) {
                     minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " " + targets);
+                    lastPlayedSound = selectedSound;
+                    lastPlayedTargets = String.join(", ", selectedPlayers);
                 }
             }
         });
@@ -209,5 +216,13 @@ public class AdminEggScreen extends VoiceChatScreenBase {
                 guiGraphics.drawString(font, prefix + name, mainAreaX + 120, contentY + (i * 12), color, false);
             }
         }
+
+        // Show currently/last playing status beautifully!
+        String targetsDisp = lastPlayedTargets;
+        if (targetsDisp.length() > 25) {
+            targetsDisp = targetsDisp.substring(0, 22) + "...";
+        }
+        guiGraphics.drawString(font, "Sonando: " + lastPlayedSound, mainAreaX + 10, height - 128, 0xFFFFFF55, false);
+        guiGraphics.drawString(font, "Para: " + targetsDisp, mainAreaX + 10, height - 118, 0xFF888888, false);
     }
 }
