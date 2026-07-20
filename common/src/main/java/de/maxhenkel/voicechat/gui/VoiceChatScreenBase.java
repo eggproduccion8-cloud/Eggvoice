@@ -37,7 +37,8 @@ public abstract class VoiceChatScreenBase extends Screen {
                this instanceof de.maxhenkel.voicechat.gui.group.GroupScreen ||
                this instanceof de.maxhenkel.voicechat.gui.group.JoinGroupScreen ||
                this instanceof de.maxhenkel.voicechat.gui.VoiceChatSettingsScreen ||
-               this instanceof de.maxhenkel.voicechat.gui.volume.AdjustVolumesScreen;
+               this instanceof de.maxhenkel.voicechat.gui.volume.AdjustVolumesScreen ||
+               this instanceof de.maxhenkel.voicechat.gui.audiodevice.SelectDeviceScreen;
     }
 
     @Override
