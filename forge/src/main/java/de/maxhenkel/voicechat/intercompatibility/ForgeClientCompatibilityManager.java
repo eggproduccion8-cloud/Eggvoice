@@ -247,7 +247,16 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
             float volume = de.maxhenkel.voicechat.gui.EggVoiceConfig.eggSoundsVolume;
             minecraft.execute(() -> {
                 minecraft.getSoundManager().play(
-                    net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(soundEvent, 1.0F, volume)
+                    new net.minecraft.client.resources.sounds.SimpleSoundInstance(
+                        soundEvent,
+                        net.minecraft.sounds.SoundSource.MASTER,
+                        volume,
+                        1.0F,
+                        net.minecraft.util.RandomSource.create(),
+                        0.0D,
+                        0.0D,
+                        0.0D
+                    )
                 );
             });
         } catch (Exception e) {

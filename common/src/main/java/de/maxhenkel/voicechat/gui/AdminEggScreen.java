@@ -28,8 +28,8 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private Button closeChannelButton;
     private Button backButton;
 
-    private boolean megaphoneActive = false;
-    private boolean channelActive = false;
+    public static boolean megaphoneActive = false;
+    public static boolean channelActive = false;
 
     private int soundOffset = 0;
     private int playerOffset = 0;
