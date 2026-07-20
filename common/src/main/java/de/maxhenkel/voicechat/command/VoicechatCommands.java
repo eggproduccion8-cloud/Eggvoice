@@ -221,6 +221,15 @@ public class VoicechatCommands {
                 return 1;
             })));
 
+        literalBuilder.then(Commands.literal("distance")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.argument("value", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0D, 1000.0D)).executes(commandSource -> {
+                double value = com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(commandSource, "value");
+                Voicechat.SERVER_CONFIG.voiceChatDistance.set(value).save();
+                commandSource.getSource().sendSuccess(() -> Component.literal("[EGG_VOICE] Distancia máxima de voz establecida en: " + value + " bloques"), true);
+                return 1;
+            })));
+
         literalBuilder.then(Commands.literal("megaphone").requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION)).executes(commandSource -> {
             ServerPlayer player = commandSource.getSource().getPlayerOrException();
             if (ACTIVE_MEGAPHONES.contains(player.getUUID())) {

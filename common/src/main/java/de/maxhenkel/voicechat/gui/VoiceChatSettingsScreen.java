@@ -77,6 +77,11 @@ public class VoiceChatSettingsScreen extends VoiceChatScreenBase {
         addRenderableWidget(micTestButton);
         y += 21;
 
+        addRenderableWidget(new de.maxhenkel.voicechat.gui.widgets.TransparentButton(guiLeft + 10, y, xSize - 20, 20, Component.literal("PROBAR AURICULARES"), button -> {
+            minecraft.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_CHIME, 1.0F));
+        }));
+        y += 21;
+
         addRenderableWidget(new EnumButton<>(guiLeft + 10, y, xSize - 20, 20, VoicechatClient.CLIENT_CONFIG.audioType) {
             @Override
             protected Component getText(AudioType type) {
