@@ -232,6 +232,11 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
             event.setCanceled(true);
             String soundName = text.substring("[EGG_PLAY_SOUND]:".length()).trim();
             playEggSound(soundName);
+        } else if (text.startsWith("[EGG_STOP_SOUND]")) {
+            event.setCanceled(true);
+            minecraft.execute(() -> {
+                minecraft.getSoundManager().stop(null, null);
+            });
         }
     }
 

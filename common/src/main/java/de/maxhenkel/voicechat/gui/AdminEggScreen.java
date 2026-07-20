@@ -21,6 +21,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private final Set<String> selectedPlayers = new HashSet<>();
     private String selectedSound = "song1";
 
+    private Button stopButton;
     private Button playButton;
     private Button megaphoneButton;
     private Button createChannelButton;
@@ -54,12 +55,21 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         int btnW = 110;
         int btnH = 20;
 
+        // Button to Stop Sound
+        stopButton = new TransparentButton(mainAreaX + 10, height - 105, 230, btnH, Component.literal("DETENER SONIDOS"), button -> {
+            if (!selectedPlayers.isEmpty() && minecraft.player != null) {
+                String targets = String.join(" ", selectedPlayers);
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop " + targets);
+            }
+        });
+        addRenderableWidget(stopButton);
+
         // Button to Play Sound
         playButton = new TransparentButton(mainAreaX + 10, height - 80, btnW, btnH, Component.literal("REPRODUCIR"), button -> {
             if (selectedSound != null && !selectedPlayers.isEmpty()) {
                 String targets = String.join(" ", selectedPlayers);
                 if (minecraft.player != null) {
-                    minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " " + targets);
+                    minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " " + targets);
                 }
             }
         });
@@ -69,7 +79,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         String megLabel = megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO";
         megaphoneButton = new TransparentButton(mainAreaX + 130, height - 80, btnW, btnH, Component.literal(megLabel), button -> {
             if (minecraft.player != null) {
-                minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " megaphone");
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " megaphone");
                 megaphoneActive = !megaphoneActive;
                 button.setMessage(Component.literal(megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO"));
             }
@@ -80,7 +90,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         createChannelButton = new TransparentButton(mainAreaX + 10, height - 55, btnW, btnH, Component.literal("INICIAR CANAL"), button -> {
             if (!selectedPlayers.isEmpty() && minecraft.player != null) {
                 String targets = String.join(" ", selectedPlayers);
-                minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " channel create " + targets);
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " channel create " + targets);
                 channelActive = true;
                 updateButtons();
             }
@@ -90,7 +100,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         // Close Private Channel Button
         closeChannelButton = new TransparentButton(mainAreaX + 130, height - 55, btnW, btnH, Component.literal("CERRAR CANAL"), button -> {
             if (minecraft.player != null) {
-                minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " channel close");
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " channel close");
                 channelActive = false;
                 updateButtons();
             }
@@ -109,6 +119,9 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private void updateButtons() {
         if (playButton != null) {
             playButton.active = selectedSound != null && !selectedPlayers.isEmpty();
+        }
+        if (stopButton != null) {
+            stopButton.active = !selectedPlayers.isEmpty();
         }
         if (createChannelButton != null) {
             createChannelButton.active = !selectedPlayers.isEmpty();

@@ -211,6 +211,16 @@ public class VoicechatCommands {
                 return 1;
             }))));
 
+        literalBuilder.then(Commands.literal("stop")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.argument("targets", EntityArgument.players()).executes(commandSource -> {
+                java.util.Collection<ServerPlayer> players = EntityArgument.getPlayers(commandSource, "targets");
+                for (ServerPlayer player : players) {
+                    player.sendSystemMessage(Component.literal("[EGG_STOP_SOUND]"));
+                }
+                return 1;
+            })));
+
         literalBuilder.then(Commands.literal("megaphone").requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION)).executes(commandSource -> {
             ServerPlayer player = commandSource.getSource().getPlayerOrException();
             if (ACTIVE_MEGAPHONES.contains(player.getUUID())) {
