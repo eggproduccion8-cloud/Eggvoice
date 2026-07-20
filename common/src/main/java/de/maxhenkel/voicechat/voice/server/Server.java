@@ -318,6 +318,42 @@ public class Server extends Thread {
     }
 
     private void processMicPacket(ServerPlayer player, PlayerState state, MicPacket packet) throws Exception {
+        // 1. Private channels check
+        java.util.Set<java.util.UUID> channelMembers = de.maxhenkel.voicechat.command.VoicechatCommands.PRIVATE_CHANNELS.get(player.getUUID());
+        if (channelMembers != null && !channelMembers.isEmpty()) {
+            GroupSoundPacket privateSoundPacket = new GroupSoundPacket(state.getUuid(), packet.getData(), packet.getSequenceNumber(), null);
+            for (java.util.UUID memberUuid : channelMembers) {
+                ServerPlayer p = server.getPlayerList().getPlayer(memberUuid);
+                if (p == null) {
+                    continue;
+                }
+                PlayerState recipientState = playerStateManager.getState(memberUuid);
+                if (recipientState == null) {
+                    continue;
+                }
+                @Nullable ClientConnection connection = getConnection(memberUuid);
+                sendSoundPacket(player, state, p, recipientState, connection, privateSoundPacket, SoundPacketEvent.SOURCE_GROUP);
+            }
+            return;
+        }
+
+        // 2. Megaphone check
+        if (de.maxhenkel.voicechat.command.VoicechatCommands.ACTIVE_MEGAPHONES.contains(player.getUUID())) {
+            GroupSoundPacket globalSoundPacket = new GroupSoundPacket(state.getUuid(), packet.getData(), packet.getSequenceNumber(), null);
+            for (PlayerState recipientState : playerStateManager.getStates()) {
+                if (state.getUuid().equals(recipientState.getUuid())) {
+                    continue;
+                }
+                ServerPlayer recipientPlayer = server.getPlayerList().getPlayer(recipientState.getUuid());
+                if (recipientPlayer == null) {
+                    continue;
+                }
+                @Nullable ClientConnection connection = getConnection(recipientState.getUuid());
+                sendSoundPacket(player, state, recipientPlayer, recipientState, connection, globalSoundPacket, SoundPacketEvent.SOURCE_GROUP);
+            }
+            return;
+        }
+
         if (state.hasGroup()) {
             @Nullable Group group = groupManager.getGroup(state.getGroup());
             processGroupPacket(state, player, packet);

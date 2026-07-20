@@ -62,18 +62,18 @@ public abstract class VoiceChatScreenBase extends Screen {
         int startY = 45;
 
         // Button 1: CONTROLES
-        Button btnControles = Button.builder(Component.literal("CONTROLES"), button -> {
+        Button btnControles = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY, btnWidth, btnHeight, Component.literal("CONTROLES"), button -> {
             if (!(this instanceof VoiceChatScreen)) {
                 minecraft.setScreen(new VoiceChatScreen());
             }
-        }).bounds(startX, startY, btnWidth, btnHeight).build();
+        });
         if (this instanceof VoiceChatScreen) {
             btnControles.active = false;
         }
         addRenderableWidget(btnControles);
 
         // Button 2: GRUPOS
-        Button btnGrupos = Button.builder(Component.literal("GRUPOS"), button -> {
+        Button btnGrupos = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 25, btnWidth, btnHeight, Component.literal("GRUPOS"), button -> {
             if (!(this instanceof de.maxhenkel.voicechat.gui.group.GroupScreen) && !(this instanceof de.maxhenkel.voicechat.gui.group.JoinGroupScreen)) {
                 ClientPlayerStateManager stateManager = ClientManager.getPlayerStateManager();
                 ClientGroup g = stateManager.getGroup();
@@ -83,29 +83,29 @@ public abstract class VoiceChatScreenBase extends Screen {
                     minecraft.setScreen(new de.maxhenkel.voicechat.gui.group.JoinGroupScreen());
                 }
             }
-        }).bounds(startX, startY + 25, btnWidth, btnHeight).build();
+        });
         if (this instanceof de.maxhenkel.voicechat.gui.group.GroupScreen || this instanceof de.maxhenkel.voicechat.gui.group.JoinGroupScreen) {
             btnGrupos.active = false;
         }
         addRenderableWidget(btnGrupos);
 
         // Button 3: AJUSTES
-        Button btnAjustes = Button.builder(Component.literal("AJUSTES"), button -> {
+        Button btnAjustes = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 50, btnWidth, btnHeight, Component.literal("AJUSTES"), button -> {
             if (!(this instanceof VoiceChatSettingsScreen)) {
                 minecraft.setScreen(new VoiceChatSettingsScreen());
             }
-        }).bounds(startX, startY + 50, btnWidth, btnHeight).build();
+        });
         if (this instanceof VoiceChatSettingsScreen) {
             btnAjustes.active = false;
         }
         addRenderableWidget(btnAjustes);
 
         // Button 4: VOLÚMENES
-        Button btnVolumenes = Button.builder(Component.literal("VOLÚMENES"), button -> {
+        Button btnVolumenes = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 75, btnWidth, btnHeight, Component.literal("VOLÚMENES"), button -> {
             if (!(this instanceof de.maxhenkel.voicechat.gui.volume.AdjustVolumesScreen)) {
                 minecraft.setScreen(new de.maxhenkel.voicechat.gui.volume.AdjustVolumesScreen());
             }
-        }).bounds(startX, startY + 75, btnWidth, btnHeight).build();
+        });
         if (this instanceof de.maxhenkel.voicechat.gui.volume.AdjustVolumesScreen) {
             btnVolumenes.active = false;
         }
@@ -134,6 +134,26 @@ public abstract class VoiceChatScreenBase extends Screen {
 
             // Header separator across the screen
             guiGraphics.fill(0, 32, width, 33, 0x33FFFFFF); // White semi-transparent separator
+
+            // Draw player profile face and name tag at the bottom left of the sidebar
+            if (minecraft.player != null) {
+                net.minecraft.resources.ResourceLocation skin = minecraft.player.getSkinTextureLocation();
+                int headX = 15;
+                int headY = height - 38;
+
+                // Draw a subtle border around the head
+                guiGraphics.fill(headX - 1, headY - 1, headX + 25, headY + 25, 0x44FFFFFF);
+
+                // Render player face
+                net.minecraft.client.gui.components.PlayerFaceRenderer.draw(guiGraphics, skin, headX, headY, 24);
+
+                // Draw player name next to it (bold)
+                Component boldName = Component.literal(minecraft.player.getGameProfile().getName()).withStyle(net.minecraft.ChatFormatting.BOLD);
+                guiGraphics.drawString(minecraft.font, boldName, headX + 30, headY + 2, 0xFFFFFFFF, false);
+
+                // Draw status subtitle
+                guiGraphics.drawString(minecraft.font, "Egg Producción", headX + 30, headY + 12, 0xFF888888, false);
+            }
         }
 
         // Draw top header text: VOICE WDP x EGG PRODUCTIONS ®

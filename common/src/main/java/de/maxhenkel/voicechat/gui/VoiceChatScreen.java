@@ -64,39 +64,39 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
         int startX = mainAreaX + (mainAreaWidth - buttonWidth) / 2;
         int startY = 60;
 
-        btnMute = Button.builder(Component.empty(), button -> {
+        btnMute = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY, buttonWidth, buttonHeight, Component.empty(), button -> {
             stateManager.setMuted(!stateManager.isMuted());
             updateButtonTexts();
-        }).bounds(startX, startY, buttonWidth, buttonHeight).build();
+        });
         addRenderableWidget(btnMute);
 
-        btnDisable = Button.builder(Component.empty(), button -> {
+        btnDisable = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 25, buttonWidth, buttonHeight, Component.empty(), button -> {
             stateManager.setDisabled(!stateManager.isDisabled());
             updateButtonTexts();
-        }).bounds(startX, startY + 25, buttonWidth, buttonHeight).build();
+        });
         addRenderableWidget(btnDisable);
 
-        btnHide = Button.builder(Component.empty(), button -> {
+        btnHide = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 50, buttonWidth, buttonHeight, Component.empty(), button -> {
             boolean newVal = !VoicechatClient.CLIENT_CONFIG.hideIcons.get();
             VoicechatClient.CLIENT_CONFIG.hideIcons.set(newVal).save();
             updateButtonTexts();
-        }).bounds(startX, startY + 50, buttonWidth, buttonHeight).build();
+        });
         addRenderableWidget(btnHide);
 
         if (client != null && VoicechatClient.CLIENT_CONFIG.useNatives.get()) {
             if (client.getRecorder() != null || (client.getConnection() != null && client.getConnection().getData().allowRecording())) {
-                btnRecord = Button.builder(Component.empty(), button -> {
+                btnRecord = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 75, buttonWidth, buttonHeight, Component.empty(), button -> {
                     toggleRecording();
                     updateButtonTexts();
-                }).bounds(startX, startY + 75, buttonWidth, buttonHeight).build();
+                });
                 addRenderableWidget(btnRecord);
             }
         }
 
         if (minecraft.player != null && minecraft.player.hasPermissions(2)) {
-            Button btnAdmin = Button.builder(Component.literal("Panel Admin Egg"), button -> {
+            Button btnAdmin = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 100, buttonWidth, buttonHeight, Component.literal("Panel Admin Egg"), button -> {
                 minecraft.setScreen(new AdminEggScreen());
-            }).bounds(startX, startY + 100, buttonWidth, buttonHeight).build();
+            });
             addRenderableWidget(btnAdmin);
         }
 

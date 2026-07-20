@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import de.maxhenkel.voicechat.command.VoicechatCommands;
+import de.maxhenkel.voicechat.gui.widgets.TransparentButton;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +22,13 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private String selectedSound = "song1";
 
     private Button playButton;
+    private Button megaphoneButton;
+    private Button createChannelButton;
+    private Button closeChannelButton;
     private Button backButton;
+
+    private boolean megaphoneActive = false;
+    private boolean channelActive = false;
 
     private int soundOffset = 0;
     private int playerOffset = 0;
@@ -44,20 +51,56 @@ public class AdminEggScreen extends VoiceChatScreenBase {
 
         int mainAreaX = 131;
         int mainAreaWidth = width - 131;
+        int btnW = 110;
+        int btnH = 20;
 
-        playButton = Button.builder(Component.literal("REPRODUCIR SONIDO"), button -> {
+        // Button to Play Sound
+        playButton = new TransparentButton(mainAreaX + 10, height - 80, btnW, btnH, Component.literal("REPRODUCIR"), button -> {
             if (selectedSound != null && !selectedPlayers.isEmpty()) {
                 String targets = String.join(" ", selectedPlayers);
                 if (minecraft.player != null) {
                     minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " " + targets);
                 }
             }
-        }).bounds(mainAreaX + (mainAreaWidth - 180) / 2, height - 55, 180, 20).build();
+        });
         addRenderableWidget(playButton);
 
-        backButton = Button.builder(Component.literal("VOLVER"), button -> {
+        // Megaphone Toggle Button
+        String megLabel = megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO";
+        megaphoneButton = new TransparentButton(mainAreaX + 130, height - 80, btnW, btnH, Component.literal(megLabel), button -> {
+            if (minecraft.player != null) {
+                minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " megaphone");
+                megaphoneActive = !megaphoneActive;
+                button.setMessage(Component.literal(megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO"));
+            }
+        });
+        addRenderableWidget(megaphoneButton);
+
+        // Create Private Channel Button
+        createChannelButton = new TransparentButton(mainAreaX + 10, height - 55, btnW, btnH, Component.literal("INICIAR CANAL"), button -> {
+            if (!selectedPlayers.isEmpty() && minecraft.player != null) {
+                String targets = String.join(" ", selectedPlayers);
+                minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " channel create " + targets);
+                channelActive = true;
+                updateButtons();
+            }
+        });
+        addRenderableWidget(createChannelButton);
+
+        // Close Private Channel Button
+        closeChannelButton = new TransparentButton(mainAreaX + 130, height - 55, btnW, btnH, Component.literal("CERRAR CANAL"), button -> {
+            if (minecraft.player != null) {
+                minecraft.player.connection.sendChat("/" + VoicechatCommands.VOICECHAT_COMMAND + " channel close");
+                channelActive = false;
+                updateButtons();
+            }
+        });
+        addRenderableWidget(closeChannelButton);
+
+        // Back Button
+        backButton = new TransparentButton(mainAreaX + (mainAreaWidth - 180) / 2, height - 30, 180, btnH, Component.literal("VOLVER"), button -> {
             minecraft.setScreen(new VoiceChatScreen());
-        }).bounds(mainAreaX + (mainAreaWidth - 180) / 2, height - 30, 180, 20).build();
+        });
         addRenderableWidget(backButton);
 
         updateButtons();
@@ -66,6 +109,12 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private void updateButtons() {
         if (playButton != null) {
             playButton.active = selectedSound != null && !selectedPlayers.isEmpty();
+        }
+        if (createChannelButton != null) {
+            createChannelButton.active = !selectedPlayers.isEmpty();
+        }
+        if (closeChannelButton != null) {
+            closeChannelButton.active = channelActive;
         }
     }
 
@@ -77,7 +126,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
 
         if (mouseX >= mainAreaX + 10 && mouseX <= mainAreaX + 110) {
             int clickedIdx = (int) ((mouseY - contentY) / 12) + soundOffset;
-            if (clickedIdx >= 0 && clickedIdx < sounds.size() && mouseY >= contentY && mouseY <= contentY + 140) {
+            if (clickedIdx >= 0 && clickedIdx < sounds.size() && mouseY >= contentY && mouseY <= contentY + 110) {
                 selectedSound = sounds.get(clickedIdx);
                 updateButtons();
                 return true;
@@ -86,7 +135,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
 
         if (mouseX >= mainAreaX + 120 && mouseX <= mainAreaX + mainAreaWidth - 10) {
             int clickedIdx = (int) ((mouseY - contentY) / 12) + playerOffset;
-            if (clickedIdx >= 0 && clickedIdx < players.size() && mouseY >= contentY && mouseY <= contentY + 140) {
+            if (clickedIdx >= 0 && clickedIdx < players.size() && mouseY >= contentY && mouseY <= contentY + 110) {
                 String pName = players.get(clickedIdx).getProfile().getName();
                 if (selectedPlayers.contains(pName)) {
                     selectedPlayers.remove(pName);
