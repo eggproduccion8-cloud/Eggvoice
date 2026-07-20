@@ -53,6 +53,8 @@ public class VoiceChatSettingsScreen extends VoiceChatScreenBase {
 
         addRenderableWidget(new VoiceSoundSlider(guiLeft + 10, y, xSize - 20, 20));
         y += 21;
+        addRenderableWidget(new de.maxhenkel.voicechat.gui.widgets.EggSoundsSlider(guiLeft + 10, y, xSize - 20, 20));
+        y += 21;
         addRenderableWidget(new MicAmplificationSlider(guiLeft + 10, y, xSize - 20, 20));
         y += 21;
         BooleanConfigButton denoiser = addRenderableWidget(new BooleanConfigButton(guiLeft + 10, y, xSize - 20, 20, VoicechatClient.CLIENT_CONFIG.denoiser, enabled -> {

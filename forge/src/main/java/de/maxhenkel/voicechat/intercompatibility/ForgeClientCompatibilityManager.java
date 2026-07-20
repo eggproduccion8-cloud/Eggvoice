@@ -224,4 +224,29 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
     public void addResourcePackSource(PackRepository packRepository, RepositorySource repositorySource) {
         packRepository.addPackFinder(repositorySource);
     }
+
+    @SubscribeEvent
+    public void onChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
+        String text = event.getMessage().getString();
+        if (text.startsWith("[EGG_PLAY_SOUND]:")) {
+            event.setCanceled(true);
+            String soundName = text.substring("[EGG_PLAY_SOUND]:".length()).trim();
+            playEggSound(soundName);
+        }
+    }
+
+    private void playEggSound(String soundName) {
+        try {
+            net.minecraft.resources.ResourceLocation soundLoc = new net.minecraft.resources.ResourceLocation("eggvoice", soundName);
+            net.minecraft.sounds.SoundEvent soundEvent = net.minecraft.sounds.SoundEvent.createVariableRangeEvent(soundLoc);
+            float volume = de.maxhenkel.voicechat.gui.EggVoiceConfig.eggSoundsVolume;
+            minecraft.execute(() -> {
+                minecraft.getSoundManager().play(
+                    net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(soundEvent, 1.0F, volume)
+                );
+            });
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
 }

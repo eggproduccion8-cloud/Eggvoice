@@ -93,9 +93,16 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
             }
         }
 
+        if (minecraft.player != null && minecraft.player.hasPermissions(2)) {
+            Button btnAdmin = Button.builder(Component.literal("Panel Admin Egg"), button -> {
+                minecraft.setScreen(new AdminEggScreen());
+            }).bounds(startX, startY + 100, buttonWidth, buttonHeight).build();
+            addRenderableWidget(btnAdmin);
+        }
+
         int relStartX = startX - guiLeft;
         int relStartY = startY - guiTop;
-        recordingHoverArea = new HoverArea(relStartX, relStartY + 100, buttonWidth, 20);
+        recordingHoverArea = new HoverArea(relStartX, relStartY + 125, buttonWidth, 20);
 
         updateButtonTexts();
         checkButtons();
@@ -156,7 +163,22 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        // Transparent modern full screen background is rendered by the parent class. No blit needed.
+        // Draw a sleek, darker professional card panel in the center of the right main content area
+        int mainAreaX = 131;
+        int mainAreaWidth = width - 131;
+        int cardWidth = 230;
+        int cardHeight = height - 90;
+        int cardX = mainAreaX + (mainAreaWidth - cardWidth) / 2;
+        int cardY = 50;
+
+        // Draw shadow/darker card background
+        guiGraphics.fill(cardX, cardY, cardX + cardWidth, cardY + cardHeight, 0x44000000);
+
+        // Draw a nice subtle glowing border around the card to make it look clean and professional
+        guiGraphics.fill(cardX - 1, cardY - 1, cardX + cardWidth + 1, cardY, 0x22FFFFFF);
+        guiGraphics.fill(cardX - 1, cardY, cardX, cardY + cardHeight, 0x22FFFFFF);
+        guiGraphics.fill(cardX + cardWidth, cardY, cardX + cardWidth + 1, cardY + cardHeight, 0x22FFFFFF);
+        guiGraphics.fill(cardX - 1, cardY + cardHeight, cardX + cardWidth + 1, cardY + cardHeight + 1, 0x22FFFFFF);
     }
 
     @Override

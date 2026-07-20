@@ -122,18 +122,18 @@ public abstract class VoiceChatScreenBase extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics) {
-        // Draw modern dark translucent background over the entire screen (glass/blur feel)
-        guiGraphics.fill(0, 0, width, height, 0xBB0B0C10); // Ultra dark blue-grey translucent
+        // Draw modern strong dark-grey translucent background over the entire screen (AAA premium carbon slate theme)
+        guiGraphics.fill(0, 0, width, height, 0xEE141519); // Deep, strong carbon slate gray
 
         if (hasSidebar()) {
-            // Sidebar darker background
-            guiGraphics.fill(0, 0, 130, height, 0x33000000);
+            // Sidebar darker panels with glowing border
+            guiGraphics.fill(0, 0, 130, height, 0x44000000); // Stronger black underlay for sidebar
 
             // Sidebar vertical separator
-            guiGraphics.fill(130, 32, 131, height, 0x22FFFFFF);
+            guiGraphics.fill(130, 32, 131, height, 0x33FFFFFF); // White semi-transparent separator
 
             // Header separator across the screen
-            guiGraphics.fill(0, 32, width, 33, 0x22FFFFFF);
+            guiGraphics.fill(0, 32, width, 33, 0x33FFFFFF); // White semi-transparent separator
         }
 
         // Draw top header text: VOICE WDP x EGG PRODUCTIONS ®

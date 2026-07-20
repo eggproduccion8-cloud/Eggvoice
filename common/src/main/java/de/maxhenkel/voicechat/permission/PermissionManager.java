@@ -18,10 +18,10 @@ public abstract class PermissionManager {
     protected List<Permission> permissions = new ArrayList<>();
 
     public PermissionManager() {
-        LISTEN_PERMISSION = createPermission(Voicechat.MODID, "listen", PermissionType.EVERYONE);
-        SPEAK_PERMISSION = createPermission(Voicechat.MODID, "speak", PermissionType.EVERYONE);
-        GROUPS_PERMISSION = createPermission(Voicechat.MODID, "groups", PermissionType.EVERYONE);
-        ADMIN_PERMISSION = createPermission(Voicechat.MODID, "admin", PermissionType.OPS);
+        LISTEN_PERMISSION = createPermission("eggvoice", "listen", PermissionType.EVERYONE);
+        SPEAK_PERMISSION = createPermission("eggvoice", "speak", PermissionType.EVERYONE);
+        GROUPS_PERMISSION = createPermission("eggvoice", "groups", PermissionType.EVERYONE);
+        ADMIN_PERMISSION = createPermission("eggvoice", "admin", PermissionType.OPS);
     }
 
     public abstract Permission createPermissionInternal(String modId, String node, PermissionType type);

@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 public class VoicechatCommands {
 
-    public static final String VOICECHAT_COMMAND = "voicechat";
+    public static final String VOICECHAT_COMMAND = "eggvoice";
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal(VOICECHAT_COMMAND);
@@ -195,6 +195,18 @@ public class VoicechatCommands {
             commandSource.getSource().sendSuccess(() -> Component.translatable("message.voicechat.leave_successful"), false);
             return 1;
         }));
+
+        literalBuilder.then(Commands.literal("play")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.argument("sound", StringArgumentType.string())
+            .then(Commands.argument("targets", EntityArgument.players()).executes(commandSource -> {
+                String soundName = StringArgumentType.getString(commandSource, "sound");
+                java.util.Collection<ServerPlayer> players = EntityArgument.getPlayers(commandSource, "targets");
+                for (ServerPlayer player : players) {
+                    player.sendSystemMessage(Component.literal("[EGG_PLAY_SOUND]:" + soundName));
+                }
+                return 1;
+            }))));
 
         dispatcher.register(literalBuilder);
     }
