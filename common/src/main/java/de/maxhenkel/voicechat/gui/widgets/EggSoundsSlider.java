@@ -16,7 +16,12 @@ public class EggSoundsSlider extends DebouncedSlider {
     }
 
     public Component getMsg() {
-        return Component.literal("Sonidos Egg Producción: " + Math.round(value * 100F) + "%");
+        return Component.literal("Sonidos Egg: " + Math.round(value * 100F) + "%");
+    }
+
+    @Override
+    protected void applyValue() {
+        EggVoiceConfig.eggSoundsVolume = (float) value;
     }
 
     @Override

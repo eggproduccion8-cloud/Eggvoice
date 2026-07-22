@@ -1,5 +1,6 @@
 package de.maxhenkel.voicechat.gui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.sounds.SoundEvent;
@@ -13,7 +14,7 @@ public class EggSoundInstance extends SimpleSoundInstance implements TickableSou
     public EggSoundInstance(SoundEvent sound, float volume) {
         super(
             sound.getLocation(),
-            SoundSource.RECORDS,
+            SoundSource.MASTER,
             volume,
             1.0F,
             net.minecraft.util.RandomSource.create(),
@@ -30,7 +31,12 @@ public class EggSoundInstance extends SimpleSoundInstance implements TickableSou
 
     @Override
     public float getVolume() {
-        return this.baseVolume * de.maxhenkel.voicechat.gui.EggVoiceConfig.eggSoundsVolume;
+        float categoryVolume = Minecraft.getInstance().options.getSoundSourceVolume(this.source);
+        float targetVolume = this.baseVolume * de.maxhenkel.voicechat.gui.EggVoiceConfig.eggSoundsVolume;
+        if (categoryVolume <= 0.001f) {
+            return targetVolume;
+        }
+        return targetVolume / categoryVolume;
     }
 
     @Override
