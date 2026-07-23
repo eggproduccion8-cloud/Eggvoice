@@ -302,6 +302,22 @@ public class Server extends Thread {
         if (player == null) {
             return;
         }
+
+        // Global mute check
+        if (de.maxhenkel.voicechat.command.VoicechatCommands.GLOBAL_MUTE && !player.hasPermissions(2)) {
+            long now = System.currentTimeMillis();
+            Long lastSent = de.maxhenkel.voicechat.command.VoicechatCommands.MUTE_MESSAGE_COOLDOWN.get(playerUuid);
+            if (lastSent == null || now - lastSent > 2000) {
+                player.sendSystemMessage(
+                    net.minecraft.network.chat.Component.literal("No está permitido hablar en este momento")
+                        .withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD),
+                    true
+                );
+                de.maxhenkel.voicechat.command.VoicechatCommands.MUTE_MESSAGE_COOLDOWN.put(playerUuid, now);
+            }
+            return; // Discard packet
+        }
+
         if (!PermissionManager.INSTANCE.SPEAK_PERMISSION.hasPermission(player)) {
             CooldownTimer.run("no-speak-" + playerUuid, 30_000L, () -> {
                 player.displayClientMessage(Component.translatable("message.voicechat.no_speak_permission"), true);

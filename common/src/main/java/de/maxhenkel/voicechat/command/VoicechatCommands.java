@@ -38,6 +38,8 @@ public class VoicechatCommands {
 
     public static final java.util.Set<UUID> ACTIVE_MEGAPHONES = java.util.concurrent.ConcurrentHashMap.newKeySet();
     public static final java.util.Map<UUID, java.util.Set<UUID>> PRIVATE_CHANNELS = new java.util.concurrent.ConcurrentHashMap<>();
+    public static boolean GLOBAL_MUTE = false;
+    public static final java.util.Map<UUID, Long> MUTE_MESSAGE_COOLDOWN = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal(VOICECHAT_COMMAND);
@@ -229,6 +231,31 @@ public class VoicechatCommands {
                 commandSource.getSource().sendSuccess(() -> Component.literal("[EGG_VOICE] Distancia máxima de voz establecida en: " + value + " bloques"), true);
                 return 1;
             })));
+
+        literalBuilder.then(Commands.literal("muteall")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .executes(commandSource -> {
+                GLOBAL_MUTE = true;
+                commandSource.getSource().getServer().getPlayerList().broadcastSystemMessage(
+                    Component.literal("[EGG_VOICE] El chat de voz ha sido SILENCIADO globalmente por la administración")
+                        .withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD),
+                    false
+                );
+                return 1;
+            }));
+
+        literalBuilder.then(Commands.literal("unmuteall")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .executes(commandSource -> {
+                GLOBAL_MUTE = false;
+                MUTE_MESSAGE_COOLDOWN.clear();
+                commandSource.getSource().getServer().getPlayerList().broadcastSystemMessage(
+                    Component.literal("[EGG_VOICE] El chat de voz ha sido REACTIVADO globalmente")
+                        .withStyle(net.minecraft.ChatFormatting.GREEN, net.minecraft.ChatFormatting.BOLD),
+                    false
+                );
+                return 1;
+            }));
 
         literalBuilder.then(Commands.literal("megaphone").requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION)).executes(commandSource -> {
             ServerPlayer player = commandSource.getSource().getPlayerOrException();
