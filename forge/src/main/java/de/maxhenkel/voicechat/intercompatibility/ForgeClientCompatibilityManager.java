@@ -42,6 +42,8 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
     private final List<Consumer<Integer>> publishServerEvents;
     private final List<KeyMapping> keyMappings;
 
+    public static final java.util.List<com.mojang.blaze3d.audio.Channel> activeEggChannels = new java.util.concurrent.CopyOnWriteArrayList<>();
+
     public ForgeClientCompatibilityManager() {
         minecraft = Minecraft.getInstance();
         renderNameplateEvents = new ArrayList<>();
@@ -56,6 +58,13 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
         voicechatDisconnectEvents = new ArrayList<>();
         publishServerEvents = new ArrayList<>();
         keyMappings = new ArrayList<>();
+
+        de.maxhenkel.voicechat.gui.EggVoiceConfig.volumeListeners.add(volume -> {
+            activeEggChannels.removeIf(com.mojang.blaze3d.audio.Channel::stopped);
+            for (com.mojang.blaze3d.audio.Channel channel : activeEggChannels) {
+                channel.setVolume(volume);
+            }
+        });
     }
 
     @SubscribeEvent
@@ -226,6 +235,15 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
     }
 
     @SubscribeEvent
+    public void onPlaySoundSource(net.minecraftforge.client.event.sound.PlaySoundSourceEvent event) {
+        if (event.getSound() instanceof de.maxhenkel.voicechat.gui.EggSoundInstance) {
+            activeEggChannels.removeIf(com.mojang.blaze3d.audio.Channel::stopped);
+            activeEggChannels.add(event.getChannel());
+            event.getChannel().setVolume(de.maxhenkel.voicechat.gui.EggVoiceConfig.eggSoundsVolume);
+        }
+    }
+
+    @SubscribeEvent
     public void onChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
         String text = event.getMessage().getString();
         if (text.startsWith("[EGG_PLAY_SOUND]:")) {
@@ -235,7 +253,10 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
         } else if (text.startsWith("[EGG_STOP_SOUND]")) {
             event.setCanceled(true);
             minecraft.execute(() -> {
-                minecraft.getSoundManager().stop(null, null);
+                for (com.mojang.blaze3d.audio.Channel channel : activeEggChannels) {
+                    channel.stop();
+                }
+                activeEggChannels.clear();
             });
         }
     }

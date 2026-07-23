@@ -21,12 +21,12 @@ public class EggSoundsSlider extends DebouncedSlider {
 
     @Override
     protected void applyValue() {
-        EggVoiceConfig.eggSoundsVolume = (float) value;
+        EggVoiceConfig.setVolume((float) value);
     }
 
     @Override
     public void applyDebounced() {
-        EggVoiceConfig.eggSoundsVolume = (float) value;
+        EggVoiceConfig.setVolume((float) value);
         EggVoiceConfig.save();
     }
 }

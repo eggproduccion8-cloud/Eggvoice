@@ -11,6 +11,8 @@ public class EggVoiceConfig {
 
     public static float eggSoundsVolume = 1.0f;
 
+    public static final java.util.List<java.util.function.Consumer<Float>> volumeListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+
     private static final Path CONFIG_FILE = Voicechat.getModConfigFolder().resolve("egg_voice_sounds.properties");
 
     static {
@@ -28,6 +30,17 @@ public class EggVoiceConfig {
             }
         } catch (Exception e) {
             // Keep default
+        }
+    }
+
+    public static void setVolume(float volume) {
+        eggSoundsVolume = volume;
+        for (java.util.function.Consumer<Float> listener : volumeListeners) {
+            try {
+                listener.accept(volume);
+            } catch (Exception e) {
+                // Ignore
+            }
         }
     }
 
