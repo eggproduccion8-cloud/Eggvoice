@@ -276,11 +276,23 @@ public class VoicechatCommands {
                 java.util.Collection<ServerPlayer> targets = EntityArgument.getPlayers(commandSource, "targets");
 
                 java.util.Set<java.util.UUID> members = new java.util.HashSet<>();
-                members.add(admin.getUUID());
+                // Add all online OPs automatically
+                for (ServerPlayer player : admin.getServer().getPlayerList().getPlayers()) {
+                    if (player.hasPermissions(2)) {
+                        members.add(player.getUUID());
+                    }
+                }
+                // Add targets
                 for (ServerPlayer t : targets) {
                     members.add(t.getUUID());
                 }
 
+                // Clear previous mappings
+                for (java.util.UUID member : members) {
+                    PRIVATE_CHANNELS.remove(member);
+                }
+
+                // Create channel mappings
                 for (java.util.UUID member : members) {
                     java.util.Set<java.util.UUID> others = new java.util.HashSet<>(members);
                     others.remove(member);
@@ -311,7 +323,8 @@ public class VoicechatCommands {
                     }
                 } else {
                     PRIVATE_CHANNELS.remove(admin.getUUID());
-                    admin.sendSystemMessage(Component.literal("[EGG_VOICE] Canal privado de administración CERRADO"));
+                    PRIVATE_CHANNELS.clear();
+                    admin.sendSystemMessage(Component.literal("[EGG_VOICE] Todos los canales privados han sido CERRADOS"));
                 }
                 return 1;
             })));

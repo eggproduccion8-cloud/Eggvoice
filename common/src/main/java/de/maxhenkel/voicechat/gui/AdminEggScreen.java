@@ -134,7 +134,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
             createChannelButton.active = !selectedPlayers.isEmpty();
         }
         if (closeChannelButton != null) {
-            closeChannelButton.active = channelActive;
+            closeChannelButton.active = true; // Always active for operators so they can always close any active channels!
         }
     }
 
