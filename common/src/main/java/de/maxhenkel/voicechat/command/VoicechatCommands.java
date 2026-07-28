@@ -34,7 +34,12 @@ import java.util.stream.Collectors;
 
 public class VoicechatCommands {
 
-    public static final String VOICECHAT_COMMAND = "voicechat";
+    public static final String VOICECHAT_COMMAND = "eggvoice";
+
+    public static final java.util.Set<UUID> ACTIVE_MEGAPHONES = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    public static final java.util.Map<UUID, java.util.Set<UUID>> PRIVATE_CHANNELS = new java.util.concurrent.ConcurrentHashMap<>();
+    public static boolean GLOBAL_MUTE = false;
+    public static final java.util.Map<UUID, Long> MUTE_MESSAGE_COOLDOWN = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal(VOICECHAT_COMMAND);
@@ -128,7 +133,7 @@ public class VoicechatCommands {
             }
 
             String passwordSuffix = group.getPassword() == null ? "" : " \"" + group.getPassword() + "\"";
-            player.sendSystemMessage(Component.translatable("message.voicechat.invite", source.getDisplayName(), Component.literal(group.getName()).withStyle(ChatFormatting.GRAY), ComponentUtils.wrapInSquareBrackets(Component.translatable("message.voicechat.accept_invite").withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/voicechat join " + group.getId().toString() + passwordSuffix)).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("message.voicechat.accept_invite.hover"))))).withStyle(ChatFormatting.GREEN)));
+            player.sendSystemMessage(Component.translatable("message.voicechat.invite", source.getDisplayName(), Component.literal(group.getName()).withStyle(ChatFormatting.GRAY), ComponentUtils.wrapInSquareBrackets(Component.translatable("message.voicechat.accept_invite").withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + VOICECHAT_COMMAND + " join " + group.getId().toString() + passwordSuffix)).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("message.voicechat.accept_invite.hover"))))).withStyle(ChatFormatting.GREEN)));
 
             commandSource.getSource().sendSuccess(() -> Component.translatable("message.voicechat.invite_successful", player.getDisplayName()), false);
 
@@ -195,6 +200,134 @@ public class VoicechatCommands {
             commandSource.getSource().sendSuccess(() -> Component.translatable("message.voicechat.leave_successful"), false);
             return 1;
         }));
+
+        literalBuilder.then(Commands.literal("play")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.argument("sound", StringArgumentType.string())
+            .then(Commands.argument("targets", EntityArgument.players()).executes(commandSource -> {
+                String soundName = StringArgumentType.getString(commandSource, "sound");
+                java.util.Collection<ServerPlayer> players = EntityArgument.getPlayers(commandSource, "targets");
+                for (ServerPlayer player : players) {
+                    player.sendSystemMessage(Component.literal("[EGG_PLAY_SOUND]:" + soundName));
+                }
+                return 1;
+            }))));
+
+        literalBuilder.then(Commands.literal("stop")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.argument("targets", EntityArgument.players()).executes(commandSource -> {
+                java.util.Collection<ServerPlayer> players = EntityArgument.getPlayers(commandSource, "targets");
+                for (ServerPlayer player : players) {
+                    player.sendSystemMessage(Component.literal("[EGG_STOP_SOUND]"));
+                }
+                return 1;
+            })));
+
+        literalBuilder.then(Commands.literal("distance")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.argument("value", com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg(1.0D, 1000.0D)).executes(commandSource -> {
+                double value = com.mojang.brigadier.arguments.DoubleArgumentType.getDouble(commandSource, "value");
+                Voicechat.SERVER_CONFIG.voiceChatDistance.set(value).save();
+                commandSource.getSource().sendSuccess(() -> Component.literal("[EGG_VOICE] Distancia máxima de voz establecida en: " + value + " bloques"), true);
+                return 1;
+            })));
+
+        literalBuilder.then(Commands.literal("muteall")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .executes(commandSource -> {
+                GLOBAL_MUTE = true;
+                commandSource.getSource().getServer().getPlayerList().broadcastSystemMessage(
+                    Component.literal("[EGG_VOICE] El chat de voz ha sido SILENCIADO globalmente por la administración")
+                        .withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD),
+                    false
+                );
+                return 1;
+            }));
+
+        literalBuilder.then(Commands.literal("unmuteall")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .executes(commandSource -> {
+                GLOBAL_MUTE = false;
+                MUTE_MESSAGE_COOLDOWN.clear();
+                commandSource.getSource().getServer().getPlayerList().broadcastSystemMessage(
+                    Component.literal("[EGG_VOICE] El chat de voz ha sido REACTIVADO globalmente")
+                        .withStyle(net.minecraft.ChatFormatting.GREEN, net.minecraft.ChatFormatting.BOLD),
+                    false
+                );
+                return 1;
+            }));
+
+        literalBuilder.then(Commands.literal("megaphone").requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION)).executes(commandSource -> {
+            ServerPlayer player = commandSource.getSource().getPlayerOrException();
+            if (ACTIVE_MEGAPHONES.contains(player.getUUID())) {
+                ACTIVE_MEGAPHONES.remove(player.getUUID());
+                commandSource.getSource().sendSuccess(() -> Component.literal("[EGG_VOICE] Megáfono DESACTIVADO"), false);
+            } else {
+                ACTIVE_MEGAPHONES.add(player.getUUID());
+                commandSource.getSource().sendSuccess(() -> Component.literal("[EGG_VOICE] Megáfono ACTIVADO"), false);
+            }
+            return 1;
+        }));
+
+        literalBuilder.then(Commands.literal("channel")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.literal("create").then(Commands.argument("targets", EntityArgument.players()).executes(commandSource -> {
+                ServerPlayer admin = commandSource.getSource().getPlayerOrException();
+                java.util.Collection<ServerPlayer> targets = EntityArgument.getPlayers(commandSource, "targets");
+
+                java.util.Set<java.util.UUID> members = new java.util.HashSet<>();
+                // Add all online OPs automatically
+                for (ServerPlayer player : admin.getServer().getPlayerList().getPlayers()) {
+                    if (player.hasPermissions(2)) {
+                        members.add(player.getUUID());
+                    }
+                }
+                // Add targets
+                for (ServerPlayer t : targets) {
+                    members.add(t.getUUID());
+                }
+
+                // Clear previous mappings
+                for (java.util.UUID member : members) {
+                    PRIVATE_CHANNELS.remove(member);
+                }
+
+                // Create channel mappings
+                for (java.util.UUID member : members) {
+                    java.util.Set<java.util.UUID> others = new java.util.HashSet<>(members);
+                    others.remove(member);
+                    PRIVATE_CHANNELS.put(member, others);
+
+                    ServerPlayer p = admin.getServer().getPlayerList().getPlayer(member);
+                    if (p != null) {
+                        p.sendSystemMessage(Component.literal("[EGG_VOICE] Canal privado de administración INICIADO"));
+                    }
+                }
+                return 1;
+            }))));
+
+        literalBuilder.then(Commands.literal("channel")
+            .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
+            .then(Commands.literal("close").executes(commandSource -> {
+                ServerPlayer admin = commandSource.getSource().getPlayerOrException();
+                java.util.Set<java.util.UUID> members = PRIVATE_CHANNELS.get(admin.getUUID());
+                if (members != null) {
+                    java.util.Set<java.util.UUID> allMembers = new java.util.HashSet<>(members);
+                    allMembers.add(admin.getUUID());
+                    for (java.util.UUID member : allMembers) {
+                        PRIVATE_CHANNELS.remove(member);
+                        ServerPlayer p = admin.getServer().getPlayerList().getPlayer(member);
+                        if (p != null) {
+                            p.sendSystemMessage(Component.literal("[EGG_VOICE] Canal privado de administración CERRADO (Volviendo a proximidad)"));
+                        }
+                    }
+                } else {
+                    PRIVATE_CHANNELS.remove(admin.getUUID());
+                    PRIVATE_CHANNELS.clear();
+                    admin.sendSystemMessage(Component.literal("[EGG_VOICE] Todos los canales privados han sido CERRADOS"));
+                }
+                return 1;
+            })));
 
         dispatcher.register(literalBuilder);
     }

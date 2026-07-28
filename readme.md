@@ -1,128 +1,90 @@
-[Modrinth](https://modrinth.com/mod/simple-voice-chat)
-|
-[CurseForge](https://legacy.curseforge.com/minecraft/mc-mods/simple-voice-chat)
-|
-[CurseForge Bukkit](https://legacy.curseforge.com/minecraft/bukkit-plugins/simple-voice-chat)
-|
-[Spigot](https://www.spigotmc.org/resources/simple-voice-chat.93738/)
-|
-[Hangar](https://hangar.papermc.io/henkelmax/SimpleVoiceChat)
-|
-[Discord](https://discord.gg/4dH2zwTmyX)
-|
-[Wiki](https://modrepo.de/minecraft/voicechat/wiki)
-|
-[FAQ](https://modrepo.de/minecraft/voicechat/faq)
-|
-[Credits](https://modrepo.de/minecraft/voicechat/credits)
-|
-[API](https://modrepo.de/minecraft/voicechat/api)
+# EGG VOICE 🥚📣
 
-# Simple Voice Chat
+Bienvenido al sistema de comunicación por voz oficial y personalizado para **Egg Producción WDP** en Minecraft Forge 1.20.1.
 
-A proximity voice chat for Minecraft.
-You can choose between push to talk (PTT) or voice activation.
-The default PTT key is `CAPS LOCK`, but it can be changed in the key bind settings.
-You can access the voice chat settings by pressing the `V` key.
+Este mod está basado en *Simple Voice Chat*, rediseñado por completo y ampliado con sistemas de reproducción de audio personalizados por proximidad para eventos de rol y supervivencia extrema.
 
-There is a variety of [addons](https://modrepo.de/minecraft/voicechat/addons) that offer additional features and functionalities.
+---
 
-:warning: **NOTE** This mod requires special setup on the server in order to work.
-Please read the [wiki](https://modrepo.de/minecraft/voicechat/wiki/setup) for more information.
+## 🚀 Características Principales
 
-<p align="center">
-    <a href="https://discord.gg/4dH2zwTmyX">
-        <img src="https://i.imgur.com/JgDt1Fl.png" width="300">
-    </a>
-    <br/>
-    <i>Please join the Discord if you have questions!</i>
-</p>
+1. **Diseño de Interfaz Premium**:
+   * Pantalla completa moderna y traslúcida (efecto de vidrio templado/borroso).
+   * Encabezado integrado: `VOICE WDP x EGG PRODUCTIONS ®`.
+   * Panel lateral de navegación con las secciones principales (`CONTROLES`, `GRUPOS`, `AJUSTES`, `VOLÚMENES`).
+   * Botones amplios, limpios y dinámicos completamente en español.
 
-## Downloads
+2. **Apartado de Administración Egg (Exclusivo para OPs)**:
+   * Los operadores del servidor verán un botón exclusivo llamado `Panel Admin Egg` en el menú principal (`V`).
+   * Este panel permite seleccionar uno de los **40 audios** del Resource Pack (`song1` a `song40`) mediante una cómoda lista con scroll.
+   * Cuenta con un listado en vivo de todos los jugadores conectados con indicadores de flechas (`->`).
+   * Permite reproducir el sonido seleccionado **únicamente para los jugadores marcados** de forma instantánea.
 
-- [Fabric](https://modrinth.com/mod/simple-voice-chat/versions?l=fabric)
-- [Forge](https://modrinth.com/mod/simple-voice-chat/versions?l=forge)
-- [Bukkit/Spigot/Paper](https://modrinth.com/plugin/simple-voice-chat/versions?l=bukkit)
-- [Quilt](https://modrinth.com/mod/simple-voice-chat/versions?l=quilt)
+3. **Control de Sonidos de Egg Producción**:
+   * Todos los jugadores tienen un nuevo deslizador en la sección de **Ajustes** del mod llamado:
+     🔊 **`Sonidos Egg Producción`**
+   * Este deslizador permite a cada jugador ajustar o silenciar independientemente la música y los efectos reproducidos desde el panel de administración, sin afectar el volumen del chat de voz principal.
 
-## Features
+---
 
-- Push to talk
-- Voice activation
-- Proximity voice chat
-- Password protected group chats
-- [Opus codec](https://opus-codec.org/)
-- [RNNoise](https://jmvalin.ca/demo/rnnoise/) recurrent neural network noise suppression
-- OpenAL audio
-- Cross compatibility between Fabric, Forge, Quilt, Bukkit, Spigot and Paper
-- Compatibility with [ModMenu](https://modrinth.com/mod/modmenu) (Use [ClothConfig](https://modrinth.com/mod/cloth-config) for a better configuration UI)
-- Configurable push to talk key
-- Microphone test playback
-- Configurable voice distance
-- Whispering
-- Individual player volume adjustment
-- Microphone amplification
-- 3D sound
-- AES encryption
-- Audio recording with separate audio tracks
-- A powerful [API](https://modrepo.de/minecraft/voicechat/api)
-- Many [addons](https://modrepo.de/minecraft/voicechat/addons)
+## ⌨️ Controles por Defecto (Configurables)
 
-## Icons
+* 🗣️ **Pulsar para hablar (Push-to-Talk)**: Tecla `Bloq Mayús` (Caps Lock).
+* ⚙️ **Abrir la GUI de Egg Voice**: Tecla `V`.
+* 👥 **Menú de Grupos de Voz**: Tecla `G`.
 
-|                 Icon                 | Description                                           |
-|:------------------------------------:|-------------------------------------------------------|
-| ![](https://i.imgur.com/FZD3ohs.png) | You are talking                                       |
-| ![](https://i.imgur.com/BJt2YAL.png) | You are whispering                                    |
-| ![](https://i.imgur.com/lmN6ydy.png) | Player is talking                                     |
-| ![](https://i.imgur.com/Felj73b.png) | Player is whispering                                  |
-| ![](https://i.imgur.com/dI3pfmA.png) | Microphone muted                                      |
-| ![](https://i.imgur.com/MZRBqra.png) | Voice chat disabled                                   |
-| ![](https://i.imgur.com/Lv3K6tC.png) | Voice chat not connected<br/>Voice chat not installed |
+---
 
-## The GUI
+## 🛠️ Comandos de Administración y Permisos (`eggvoice`)
 
-You can open the voice chat GUI by pressing the `V` key.
-This allows you to open the settings, group chats, mute yourself, disable the voice chat, start/stop a recording and hide all icons.
+El comando principal ha sido renombrado a `/eggvoice`. Los permisos asociados ahora utilizan el prefijo `eggvoice.*` en lugar de `voicechat.*`.
 
-![](https://i.imgur.com/TCCHTl8.png)
+### Comandos de Consola y Chat:
+* `/eggvoice help`: Muestra el menú de ayuda.
+* `/eggvoice play <sonido> <jugadores>`: *(Exclusivo OP / Permiso: `eggvoice.admin`)* Reproduce un sonido del Resource Pack de Egg Producción únicamente a los jugadores especificados.
+* `/eggvoice invite <jugador>`: Invita a un jugador a tu grupo de voz privado.
+* `/eggvoice join <grupo>`: Te une a un grupo de voz.
+* `/eggvoice leave`: Te saca del grupo de voz actual.
 
-### Group Chats
+### Nodos de Permisos (para administradores de rangos como LuckPerms):
+* `eggvoice.listen`: Permiso para escuchar a otros (otorgado por defecto a todos).
+* `eggvoice.speak`: Permiso para hablar por micrófono (otorgado por defecto a todos).
+* `eggvoice.groups`: Permiso para crear o unirse a salas de chat privadas globales (otorgado por defecto a todos).
+* `eggvoice.admin`: Permiso para acceder al panel de administración y reproducir los sonidos de Egg Producción (otorgado a OPs por defecto).
 
-Group chats allow you to talk to players that are not in your vicinity.
-To open the group chat interface, either press the group button in the voice chat GUI or just press the `G` key.
+---
 
-To create a new group, just type a name in the text field and press the button next to it.
+## 📦 El Resource Pack de Audios (EggVoiceSoundPack)
 
-![](https://i.imgur.com/FihRdNd.png)
+En el repositorio tienes la carpeta del Resource Pack oficial:
+📁 `resourcepacks/EggVoiceSoundPack`
 
-Creating or joining a group will bring you into the group chat interface.
-You will also see the heads of the group members in the top left corner of your screen.
-Talking players will be outlined.
-You can disable these icons by pressing the third button from the left.
+### Cómo añadir tus canciones y audios:
+1. Convierte tus audios a formato **`.ogg`**.
+2. Nómbralos exactamente como `song1.ogg`, `song2.ogg`, ..., hasta `song40.ogg`.
+3. Pégalos en la ruta:
+   `resourcepacks/EggVoiceSoundPack/assets/eggvoice/sounds/` (reemplazando los archivos de marcador que ya creé por ti).
+4. Sube este Resource Pack a tu servidor de Minecraft o compártelo con tus jugadores para que lo activen en sus carpetas `resourcepacks/`.
 
-![](https://i.imgur.com/ZVSfBms.png)
+---
 
-Players that are not in a group will see a group icon next to your head, indicating that they can't talk to you.
+## 🛠️ Guía de Compilación en Termux (Android)
 
-You can invite players to your group chat by entering the command `/voicechat invite <playername>`.
+Si deseas volver a compilar el mod en el futuro, los comandos están listos y limpios:
 
-### Settings
+1. **Establece Java 17 en tu Termux:**
+   ```bash
+   export JAVA_HOME=$PREFIX/lib/jvm/java-17-openjdk
+   ```
+2. **Compila la versión de Forge 1.20.1:**
+   ```bash
+   bash gradlew :forge:shadowJar
+   ```
+3. **Mueve el archivo compilado a tus Descargas de Android:**
+   ```bash
+   cp forge/build/reobfShadowJar/output.jar /sdcard/Download/EGG_VOICE_FORGE_1.20.1.jar
+   ```
 
-You can access the voice chat GUI by pressing the `V` key and pressing the settings button.
+---
 
-This menu offers the ability to change the general voice chat volume and your microphone amplification.
-In addition, there is the possibility to specify the recording and playback device.
-
-By clicking the 'Enable microphone testing' button, you can hear your own voice and adjust the activation level of the voice activation.
-
-![](https://i.imgur.com/TMyfSYU.png)
-
-## Important Notes
-
-You need to open a port on the server. This is port `24454` `UDP` by default.
-Without opening this port, the voice chat will not work.
-This port can be changed in the server config.
-More information [here](https://modrepo.de/minecraft/voicechat/wiki/setup).
-
-The voice chat is encrypted, but we don't guarantee the security of it. Use at your own risk!
+*Desarrollado y optimizado con ❤️ para el universo de series y eventos de **Egg Producción WDP**.*

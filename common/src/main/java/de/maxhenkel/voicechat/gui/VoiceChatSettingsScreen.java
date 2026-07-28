@@ -75,6 +75,11 @@ public class VoiceChatSettingsScreen extends VoiceChatScreenBase {
         addRenderableWidget(micTestButton);
         y += 21;
 
+        addRenderableWidget(new de.maxhenkel.voicechat.gui.widgets.TransparentButton(guiLeft + 10, y, xSize - 20, 20, Component.literal("PROBAR AURICULARES"), button -> {
+            minecraft.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_CHIME, 1.0F));
+        }));
+        y += 21;
+
         addRenderableWidget(new EnumButton<>(guiLeft + 10, y, xSize - 20, 20, VoicechatClient.CLIENT_CONFIG.audioType) {
             @Override
             protected Component getText(AudioType type) {
@@ -113,18 +118,11 @@ public class VoiceChatSettingsScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-        if (isIngame()) {
-            guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
-        }
+        // No texture blitting. Transparent modern full screen background is rendered by parent.
     }
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        int titleWidth = font.width(TITLE);
-        guiGraphics.drawString(font, TITLE.getVisualOrderText(), guiLeft + (xSize - titleWidth) / 2, guiTop + 7, getFontColor(), false);
-
         Tooltip tooltip = voiceActivationSlider.getTooltip();
         if (tooltip != null && voiceActivationSlider.isHovered()) {
             guiGraphics.renderTooltip(font, tooltip.toCharSequence(minecraft), mouseX, mouseY);

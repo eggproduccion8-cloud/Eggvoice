@@ -38,8 +38,11 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
     private static final Component GROUP = Component.translatable("message.voicechat.group");
     public static final Component ADJUST_PLAYER_VOLUMES = Component.translatable("message.voicechat.adjust_volumes");
 
-    private ToggleImageButton mute;
-    private ToggleImageButton disable;
+    private Button btnMute;
+    private Button btnDisable;
+    private Button btnHide;
+    @Nullable
+    private Button btnRecord;
     private HoverArea recordingHoverArea;
 
     private ClientPlayerStateManager stateManager;
@@ -54,65 +57,91 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
         super.init();
         @Nullable ClientVoicechat client = ClientManager.getClient();
 
-        mute = new ToggleImageButton(guiLeft + 6, guiTop + ySize - 6 - 20, MICROPHONE, stateManager::isMuted, button -> {
+        int mainAreaX = 131;
+        int mainAreaWidth = width - 131;
+        int buttonWidth = 200;
+        int buttonHeight = 20;
+        int startX = mainAreaX + (mainAreaWidth - buttonWidth) / 2;
+        int startY = 60;
+
+        btnMute = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY, buttonWidth, buttonHeight, Component.empty(), button -> {
             stateManager.setMuted(!stateManager.isMuted());
-        }, new MuteTooltipSupplier(this, stateManager));
-        addRenderableWidget(mute);
-
-        disable = new ToggleImageButton(guiLeft + 6 + 20 + 2, guiTop + ySize - 6 - 20, SPEAKER, stateManager::isDisabled, button -> {
-            stateManager.setDisabled(!stateManager.isDisabled());
-        }, new DisableTooltipSupplier(this, stateManager));
-        addRenderableWidget(disable);
-
-        ImageButton volumes = new ImageButton(guiLeft + 6 + 20 + 2 + 20 + 2, guiTop + ySize - 6 - 20, VOLUMES, button -> {
-            minecraft.setScreen(new AdjustVolumesScreen());
-        }, (button, guiGraphics, font, mouseX, mouseY) -> {
-            guiGraphics.renderTooltip(font, ADJUST_PLAYER_VOLUMES, mouseX, mouseY);
+            updateButtonTexts();
         });
-        addRenderableWidget(volumes);
+        addRenderableWidget(btnMute);
+
+        btnDisable = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 25, buttonWidth, buttonHeight, Component.empty(), button -> {
+            stateManager.setDisabled(!stateManager.isDisabled());
+            updateButtonTexts();
+        });
+        addRenderableWidget(btnDisable);
+
+        btnHide = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 50, buttonWidth, buttonHeight, Component.empty(), button -> {
+            boolean newVal = !VoicechatClient.CLIENT_CONFIG.hideIcons.get();
+            VoicechatClient.CLIENT_CONFIG.hideIcons.set(newVal).save();
+            updateButtonTexts();
+        });
+        addRenderableWidget(btnHide);
 
         if (client != null && VoicechatClient.CLIENT_CONFIG.useNatives.get()) {
             if (client.getRecorder() != null || (client.getConnection() != null && client.getConnection().getData().allowRecording())) {
-                ToggleImageButton record = new ToggleImageButton(guiLeft + xSize - 6 - 20 - 2 - 20, guiTop + ySize - 6 - 20, RECORD, () -> ClientManager.getClient() != null && ClientManager.getClient().getRecorder() != null, button -> toggleRecording(), new RecordingTooltipSupplier(this));
-                addRenderableWidget(record);
+                btnRecord = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 75, buttonWidth, buttonHeight, Component.empty(), button -> {
+                    toggleRecording();
+                    updateButtonTexts();
+                });
+                addRenderableWidget(btnRecord);
             }
         }
 
-        ToggleImageButton hide = new ToggleImageButton(guiLeft + xSize - 6 - 20, guiTop + ySize - 6 - 20, HIDE, VoicechatClient.CLIENT_CONFIG.hideIcons::get, button -> {
-            VoicechatClient.CLIENT_CONFIG.hideIcons.set(!VoicechatClient.CLIENT_CONFIG.hideIcons.get()).save();
-        }, new HideTooltipSupplier(this));
-        addRenderableWidget(hide);
+        if (minecraft.player != null && minecraft.player.hasPermissions(2)) {
+            Button btnAdmin = new de.maxhenkel.voicechat.gui.widgets.TransparentButton(startX, startY + 100, buttonWidth, buttonHeight, Component.literal("Panel Admin Egg"), button -> {
+                minecraft.setScreen(new AdminEggScreen());
+            });
+            addRenderableWidget(btnAdmin);
+        }
 
-        Button settings = Button.builder(SETTINGS, button -> {
-            minecraft.setScreen(new VoiceChatSettingsScreen());
-        }).bounds(guiLeft + 6, guiTop + 6 + 15, 75, 20).build();
-        addRenderableWidget(settings);
+        int relStartX = startX - guiLeft;
+        int relStartY = startY - guiTop;
+        recordingHoverArea = new HoverArea(relStartX, relStartY + 125, buttonWidth, 20);
 
-        Button group = Button.builder(GROUP, button -> {
-            ClientGroup g = stateManager.getGroup();
-            if (g != null) {
-                minecraft.setScreen(new GroupScreen(g));
-            } else {
-                minecraft.setScreen(new JoinGroupScreen());
-            }
-        }).bounds(guiLeft + xSize - 6 - 75 + 1, guiTop + 6 + 15, 75, 20).build();
-        addRenderableWidget(group);
-
-        group.active = client != null && client.getConnection() != null && client.getConnection().getData().groupsEnabled();
-        recordingHoverArea = new HoverArea(6 + 20 + 2 + 20 + 2 + 20 + 2, ySize - 6 - 20, xSize - ((6 + 20 + 2 + 20 + 2) * 2 + 20 + 2), 20);
-
+        updateButtonTexts();
         checkButtons();
+    }
+
+    private void updateButtonTexts() {
+        if (btnMute != null) {
+            String state = stateManager.isMuted() ? "SILENCIADO" : "ACTIVO";
+            btnMute.setMessage(Component.literal("Micrófono: " + state));
+        }
+        if (btnDisable != null) {
+            String state = stateManager.isDisabled() ? "DESACTIVADO" : "ACTIVO";
+            btnDisable.setMessage(Component.literal("Sonido: " + state));
+        }
+        if (btnHide != null) {
+            String state = VoicechatClient.CLIENT_CONFIG.hideIcons.get() ? "OCULTOS" : "VISIBLES";
+            btnHide.setMessage(Component.literal("Iconos HUD: " + state));
+        }
+        if (btnRecord != null) {
+            boolean recording = ClientManager.getClient() != null && ClientManager.getClient().getRecorder() != null;
+            String state = recording ? "DETENER" : "INICIAR";
+            btnRecord.setMessage(Component.literal("Grabación de Audio: " + state));
+        }
     }
 
     @Override
     public void tick() {
         super.tick();
+        updateButtonTexts();
         checkButtons();
     }
 
     private void checkButtons() {
-        mute.active = MuteTooltipSupplier.canMuteMic();
-        disable.active = stateManager.canEnable();
+        if (btnMute != null) {
+            btnMute.active = MuteTooltipSupplier.canMuteMic();
+        }
+        if (btnDisable != null) {
+            btnDisable.active = stateManager.canEnable();
+        }
     }
 
     private void toggleRecording() {
@@ -134,16 +163,26 @@ public class VoiceChatScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
+        // Draw a sleek, darker professional card panel in the center of the right main content area
+        int mainAreaX = 131;
+        int mainAreaWidth = width - 131;
+        int cardWidth = 230;
+        int cardHeight = height - 90;
+        int cardX = mainAreaX + (mainAreaWidth - cardWidth) / 2;
+        int cardY = 50;
+
+        // Draw shadow/darker card background
+        guiGraphics.fill(cardX, cardY, cardX + cardWidth, cardY + cardHeight, 0x44000000);
+
+        // Draw a nice subtle glowing border around the card to make it look clean and professional
+        guiGraphics.fill(cardX - 1, cardY - 1, cardX + cardWidth + 1, cardY, 0x22FFFFFF);
+        guiGraphics.fill(cardX - 1, cardY, cardX, cardY + cardHeight, 0x22FFFFFF);
+        guiGraphics.fill(cardX + cardWidth, cardY, cardX + cardWidth + 1, cardY + cardHeight, 0x22FFFFFF);
+        guiGraphics.fill(cardX - 1, cardY + cardHeight, cardX + cardWidth + 1, cardY + cardHeight + 1, 0x22FFFFFF);
     }
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        int titleWidth = font.width(TITLE);
-        guiGraphics.drawString(font, TITLE.getVisualOrderText(), guiLeft + (xSize - titleWidth) / 2, guiTop + 7, FONT_COLOR, false);
-
         ClientVoicechat client = ClientManager.getClient();
         if (client != null && client.getRecorder() != null) {
             AudioRecorder recorder = client.getRecorder();

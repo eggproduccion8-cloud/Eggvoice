@@ -41,7 +41,7 @@ public class ServerConfig {
                         "To bind to the wildcard address, use '*'"
                 );
         voiceChatDistance = builder
-                .doubleEntry("max_voice_distance", 48D, 1D, 1_000_000D,
+                .doubleEntry("max_voice_distance", 12D, 1D, 1_000_000D,
                         "The distance to where the voice can be heard"
                 );
         crouchDistanceMultiplier = builder

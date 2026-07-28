@@ -302,6 +302,22 @@ public class Server extends Thread {
         if (player == null) {
             return;
         }
+
+        // Global mute check
+        if (de.maxhenkel.voicechat.command.VoicechatCommands.GLOBAL_MUTE && !player.hasPermissions(2)) {
+            long now = System.currentTimeMillis();
+            Long lastSent = de.maxhenkel.voicechat.command.VoicechatCommands.MUTE_MESSAGE_COOLDOWN.get(playerUuid);
+            if (lastSent == null || now - lastSent > 2000) {
+                player.sendSystemMessage(
+                    net.minecraft.network.chat.Component.literal("No está permitido hablar en este momento")
+                        .withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD),
+                    true
+                );
+                de.maxhenkel.voicechat.command.VoicechatCommands.MUTE_MESSAGE_COOLDOWN.put(playerUuid, now);
+            }
+            return; // Discard packet
+        }
+
         if (!PermissionManager.INSTANCE.SPEAK_PERMISSION.hasPermission(player)) {
             CooldownTimer.run("no-speak-" + playerUuid, 30_000L, () -> {
                 player.displayClientMessage(Component.translatable("message.voicechat.no_speak_permission"), true);
@@ -318,6 +334,42 @@ public class Server extends Thread {
     }
 
     private void processMicPacket(ServerPlayer player, PlayerState state, MicPacket packet) throws Exception {
+        // 1. Private channels check
+        java.util.Set<java.util.UUID> channelMembers = de.maxhenkel.voicechat.command.VoicechatCommands.PRIVATE_CHANNELS.get(player.getUUID());
+        if (channelMembers != null && !channelMembers.isEmpty()) {
+            GroupSoundPacket privateSoundPacket = new GroupSoundPacket(state.getUuid(), packet.getData(), packet.getSequenceNumber(), null);
+            for (java.util.UUID memberUuid : channelMembers) {
+                ServerPlayer p = server.getPlayerList().getPlayer(memberUuid);
+                if (p == null) {
+                    continue;
+                }
+                PlayerState recipientState = playerStateManager.getState(memberUuid);
+                if (recipientState == null) {
+                    continue;
+                }
+                @Nullable ClientConnection connection = getConnection(memberUuid);
+                sendSoundPacket(player, state, p, recipientState, connection, privateSoundPacket, SoundPacketEvent.SOURCE_GROUP);
+            }
+            return;
+        }
+
+        // 2. Megaphone check
+        if (de.maxhenkel.voicechat.command.VoicechatCommands.ACTIVE_MEGAPHONES.contains(player.getUUID())) {
+            GroupSoundPacket globalSoundPacket = new GroupSoundPacket(state.getUuid(), packet.getData(), packet.getSequenceNumber(), null);
+            for (PlayerState recipientState : playerStateManager.getStates()) {
+                if (state.getUuid().equals(recipientState.getUuid())) {
+                    continue;
+                }
+                ServerPlayer recipientPlayer = server.getPlayerList().getPlayer(recipientState.getUuid());
+                if (recipientPlayer == null) {
+                    continue;
+                }
+                @Nullable ClientConnection connection = getConnection(recipientState.getUuid());
+                sendSoundPacket(player, state, recipientPlayer, recipientState, connection, globalSoundPacket, SoundPacketEvent.SOURCE_GROUP);
+            }
+            return;
+        }
+
         if (state.hasGroup()) {
             @Nullable Group group = groupManager.getGroup(state.getGroup());
             processGroupPacket(state, player, packet);

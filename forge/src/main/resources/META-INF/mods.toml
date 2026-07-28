@@ -1,18 +1,18 @@
 modLoader="javafml"
 loaderVersion="${forge_loader_requirement}"
-license="All rights reserved"
+license="Egg Producción License (All rights reserved)."
 issueTrackerURL="https://github.com/henkelmax/simple-voice-chat/issues"
 displayURL="https://modrepo.de/minecraft/voicechat/overview"
 logoFile="icon.png"
-# credits=""
-authors="Max Henkel"
+credits="Credits to Simple Voice Chat (Max Henkel)"
+authors="Egg Producción (Original by Max Henkel)"
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
-displayName="${mod_name}"
+displayName="WDP_VOICE_EGG"
 updateJSONURL="https://maxhenkel.de/update/voicechat.json"
 displayTest="NONE"
-description='''A working voice chat in Minecraft!'''
+description='''Chat de voz por proximidad personalizado para Egg Producción WDP.'''
 [[dependencies.${mod_id}]]
     modId="forge"
     mandatory=true
