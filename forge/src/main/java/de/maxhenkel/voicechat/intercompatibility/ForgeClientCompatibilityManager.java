@@ -42,8 +42,6 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
     private final List<Consumer<Integer>> publishServerEvents;
     private final List<KeyMapping> keyMappings;
 
-    public static final java.util.List<com.mojang.blaze3d.audio.Channel> activeEggChannels = new java.util.concurrent.CopyOnWriteArrayList<>();
-
     public ForgeClientCompatibilityManager() {
         minecraft = Minecraft.getInstance();
         renderNameplateEvents = new ArrayList<>();
@@ -58,13 +56,6 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
         voicechatDisconnectEvents = new ArrayList<>();
         publishServerEvents = new ArrayList<>();
         keyMappings = new ArrayList<>();
-
-        de.maxhenkel.voicechat.gui.EggVoiceConfig.volumeListeners.add(volume -> {
-            activeEggChannels.removeIf(com.mojang.blaze3d.audio.Channel::stopped);
-            for (com.mojang.blaze3d.audio.Channel channel : activeEggChannels) {
-                channel.setVolume(volume);
-            }
-        });
     }
 
     @SubscribeEvent
@@ -237,8 +228,8 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
     @SubscribeEvent
     public void onPlaySoundSource(net.minecraftforge.client.event.sound.PlaySoundSourceEvent event) {
         if (event.getSound() instanceof de.maxhenkel.voicechat.gui.EggSoundInstance) {
-            activeEggChannels.removeIf(com.mojang.blaze3d.audio.Channel::stopped);
-            activeEggChannels.add(event.getChannel());
+            de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels.removeIf(com.mojang.blaze3d.audio.Channel::stopped);
+            de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels.add(event.getChannel());
             event.getChannel().setVolume(de.maxhenkel.voicechat.gui.EggVoiceConfig.eggSoundsVolume);
         }
     }
@@ -253,10 +244,10 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
         } else if (text.startsWith("[EGG_STOP_SOUND]")) {
             event.setCanceled(true);
             minecraft.execute(() -> {
-                for (com.mojang.blaze3d.audio.Channel channel : activeEggChannels) {
+                for (com.mojang.blaze3d.audio.Channel channel : de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels) {
                     channel.stop();
                 }
-                activeEggChannels.clear();
+                de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels.clear();
             });
         }
     }

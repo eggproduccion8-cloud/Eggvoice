@@ -15,7 +15,10 @@
     "PackRepositoryMixin",
     "GuiMixin",
     "IntegratedServerMixin",
-    "PlayerEntryMixin"
+    "PlayerEntryMixin",
+    "ChannelHandleAccessor",
+    "SoundEngineMixin",
+    "ClientPacketListenerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
