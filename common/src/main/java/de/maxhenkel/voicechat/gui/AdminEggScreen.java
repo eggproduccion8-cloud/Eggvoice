@@ -26,6 +26,8 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private Button megaphoneButton;
     private Button createChannelButton;
     private Button closeChannelButton;
+    private Button selectAllButton;
+    private Button deselectAllButton;
     private Button backButton;
 
     public static boolean megaphoneActive = false;
@@ -61,8 +63,9 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         // Button to Stop Sound
         stopButton = new TransparentButton(mainAreaX + 10, height - 105, 230, btnH, Component.literal("DETENER SONIDOS"), button -> {
             if (!selectedPlayers.isEmpty() && minecraft.player != null) {
-                String targets = String.join(" ", selectedPlayers);
-                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop " + targets);
+                for (String pName : selectedPlayers) {
+                    minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop " + pName);
+                }
                 lastPlayedSound = "Ninguno";
                 lastPlayedTargets = "Nadie";
             }
@@ -72,12 +75,13 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         // Button to Play Sound
         playButton = new TransparentButton(mainAreaX + 10, height - 80, btnW, btnH, Component.literal("REPRODUCIR"), button -> {
             if (selectedSound != null && !selectedPlayers.isEmpty()) {
-                String targets = String.join(" ", selectedPlayers);
-                if (minecraft.player != null) {
-                    minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " " + targets);
-                    lastPlayedSound = selectedSound;
-                    lastPlayedTargets = String.join(", ", selectedPlayers);
+                for (String pName : selectedPlayers) {
+                    if (minecraft.player != null) {
+                        minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " " + pName);
+                    }
                 }
+                lastPlayedSound = selectedSound;
+                lastPlayedTargets = String.join(", ", selectedPlayers);
             }
         });
         addRenderableWidget(playButton);
@@ -96,7 +100,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         // Create Private Channel Button
         createChannelButton = new TransparentButton(mainAreaX + 10, height - 55, btnW, btnH, Component.literal("INICIAR CANAL"), button -> {
             if (!selectedPlayers.isEmpty() && minecraft.player != null) {
-                String targets = String.join(" ", selectedPlayers);
+                String targets = String.join(",", selectedPlayers);
                 minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " channel create " + targets);
                 channelActive = true;
                 updateButtons();
@@ -113,6 +117,23 @@ public class AdminEggScreen extends VoiceChatScreenBase {
             }
         });
         addRenderableWidget(closeChannelButton);
+
+        // Select All Button
+        selectAllButton = new TransparentButton(mainAreaX + 10, height - 130, btnW, btnH, Component.literal("MARCAR TODOS"), button -> {
+            selectedPlayers.clear();
+            for (PlayerInfo p : players) {
+                selectedPlayers.add(p.getProfile().getName());
+            }
+            updateButtons();
+        });
+        addRenderableWidget(selectAllButton);
+
+        // Deselect All Button
+        deselectAllButton = new TransparentButton(mainAreaX + 130, height - 130, btnW, btnH, Component.literal("DESMARCAR TODOS"), button -> {
+            selectedPlayers.clear();
+            updateButtons();
+        });
+        addRenderableWidget(deselectAllButton);
 
         // Back Button
         backButton = new TransparentButton(mainAreaX + (mainAreaWidth - 180) / 2, height - 30, 180, btnH, Component.literal("VOLVER"), button -> {
@@ -134,7 +155,13 @@ public class AdminEggScreen extends VoiceChatScreenBase {
             createChannelButton.active = !selectedPlayers.isEmpty();
         }
         if (closeChannelButton != null) {
-            closeChannelButton.active = true; // Always active for operators so they can always close any active channels!
+            closeChannelButton.active = true;
+        }
+        if (selectAllButton != null) {
+            selectAllButton.active = !players.isEmpty();
+        }
+        if (deselectAllButton != null) {
+            deselectAllButton.active = !selectedPlayers.isEmpty();
         }
     }
 
@@ -222,7 +249,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         if (targetsDisp.length() > 25) {
             targetsDisp = targetsDisp.substring(0, 22) + "...";
         }
-        guiGraphics.drawString(font, "Sonando: " + lastPlayedSound, mainAreaX + 10, height - 128, 0xFFFFFF55, false);
-        guiGraphics.drawString(font, "Para: " + targetsDisp, mainAreaX + 10, height - 118, 0xFF888888, false);
+        guiGraphics.drawString(font, "Sonando: " + lastPlayedSound, mainAreaX + 10, height - 153, 0xFFFFFF55, false);
+        guiGraphics.drawString(font, "Para: " + targetsDisp, mainAreaX + 10, height - 143, 0xFF888888, false);
     }
 }

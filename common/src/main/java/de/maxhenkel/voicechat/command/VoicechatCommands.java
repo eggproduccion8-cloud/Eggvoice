@@ -271,9 +271,9 @@ public class VoicechatCommands {
 
         literalBuilder.then(Commands.literal("channel")
             .requires(commandSource -> checkPermission(commandSource, PermissionManager.INSTANCE.ADMIN_PERMISSION))
-            .then(Commands.literal("create").then(Commands.argument("targets", EntityArgument.players()).executes(commandSource -> {
+            .then(Commands.literal("create").then(Commands.argument("targets", StringArgumentType.string()).executes(commandSource -> {
                 ServerPlayer admin = commandSource.getSource().getPlayerOrException();
-                java.util.Collection<ServerPlayer> targets = EntityArgument.getPlayers(commandSource, "targets");
+                String targetNames = StringArgumentType.getString(commandSource, "targets");
 
                 java.util.Set<java.util.UUID> members = new java.util.HashSet<>();
                 // Add all online OPs automatically
@@ -282,9 +282,12 @@ public class VoicechatCommands {
                         members.add(player.getUUID());
                     }
                 }
-                // Add targets
-                for (ServerPlayer t : targets) {
-                    members.add(t.getUUID());
+                // Add targets from comma-separated names
+                for (String name : targetNames.split(",")) {
+                    ServerPlayer t = admin.getServer().getPlayerList().getPlayerByName(name.trim());
+                    if (t != null) {
+                        members.add(t.getUUID());
+                    }
                 }
 
                 // Clear previous mappings
