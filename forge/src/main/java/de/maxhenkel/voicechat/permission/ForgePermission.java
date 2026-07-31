@@ -16,7 +16,7 @@ public class ForgePermission implements Permission {
 
     @Override
     public boolean hasPermission(ServerPlayer player) {
-        return PermissionAPI.getPermission(player, node);
+        return ForgePermissionManager.checkPermissionWithCache(player, node.getNodeName(), type);
     }
 
     @Override

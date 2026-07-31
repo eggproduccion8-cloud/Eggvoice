@@ -11,6 +11,7 @@ public class ServerConfig {
     public ConfigEntry<Integer> voiceChatPort;
     public ConfigEntry<String> voiceChatBindAddress;
     public ConfigEntry<Double> voiceChatDistance;
+    public ConfigEntry<String> permissionSystem;
     public ConfigEntry<Double> crouchDistanceMultiplier;
     public ConfigEntry<Double> whisperDistanceMultiplier;
     public ConfigEntry<Codec> voiceChatCodec;
@@ -43,6 +44,10 @@ public class ServerConfig {
         voiceChatDistance = builder
                 .doubleEntry("max_voice_distance", 12D, 1D, 1_000_000D,
                         "The distance to where the voice can be heard"
+                );
+        permissionSystem = builder
+                .stringEntry("permission_system", "auto",
+                        "The permission system to use. Options: auto, luckperms, forge, bukkit"
                 );
         crouchDistanceMultiplier = builder
                 .doubleEntry("crouch_distance_multiplier", 1D, 0.01D, 1D,
