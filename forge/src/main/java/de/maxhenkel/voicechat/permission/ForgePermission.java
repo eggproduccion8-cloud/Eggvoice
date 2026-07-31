@@ -1,7 +1,6 @@
 package de.maxhenkel.voicechat.permission;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.server.permission.PermissionAPI;
 import net.minecraftforge.server.permission.nodes.PermissionNode;
 
 public class ForgePermission implements Permission {
@@ -16,7 +15,13 @@ public class ForgePermission implements Permission {
 
     @Override
     public boolean hasPermission(ServerPlayer player) {
-        return ForgePermissionManager.checkPermissionWithCache(player, node.getNodeName(), type);
+        String nodeName = node.getNodeName();
+        if ("admin".equals(nodeName)) {
+            // Admin permission strictly requires being OP (level 2 or higher) and does NOT depend on LuckPerms/external APIs!
+            return player != null && player.hasPermissions(2);
+        }
+        // Speak, listen, and groups always return true (everyone is allowed without permissions!)
+        return true;
     }
 
     @Override
