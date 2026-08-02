@@ -15,6 +15,8 @@ public class ClientPacketListenerMixin {
     @Shadow
     private Minecraft minecraft;
 
+    public static String currentlyPlayingSound = null;
+
     @Inject(method = "handleSystemChat", at = @At("HEAD"), cancellable = true)
     private void onHandleSystemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
         String text = packet.content().getString();
@@ -24,6 +26,7 @@ public class ClientPacketListenerMixin {
             playEggSound(soundName);
         } else if (text.startsWith("[EGG_STOP_SOUND]")) {
             ci.cancel();
+            currentlyPlayingSound = null;
             minecraft.execute(() -> {
                 for (com.mojang.blaze3d.audio.Channel channel : de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels) {
                     channel.stop();
@@ -35,6 +38,20 @@ public class ClientPacketListenerMixin {
 
     private void playEggSound(String soundName) {
         try {
+            if (currentlyPlayingSound != null) {
+                if (currentlyPlayingSound.equals(soundName)) {
+                    return;
+                }
+                minecraft.execute(() -> {
+                    for (com.mojang.blaze3d.audio.Channel channel : de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels) {
+                        channel.stop();
+                    }
+                    de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels.clear();
+                });
+            }
+
+            currentlyPlayingSound = soundName;
+
             net.minecraft.resources.ResourceLocation soundLoc = new net.minecraft.resources.ResourceLocation("eggvoice", soundName);
             net.minecraft.sounds.SoundEvent soundEvent = net.minecraft.sounds.SoundEvent.createVariableRangeEvent(soundLoc);
             minecraft.execute(() -> {

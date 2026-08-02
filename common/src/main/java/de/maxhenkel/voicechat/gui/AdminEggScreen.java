@@ -21,13 +21,13 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     private final Set<String> selectedPlayers = new HashSet<>();
     private String selectedSound = "song1";
 
-    private Button stopButton;
+    private Button playAllButton;
+    private Button stopAllButton;
     private Button playButton;
-    private Button megaphoneButton;
+    private Button stopButton;
     private Button createChannelButton;
     private Button closeChannelButton;
-    private Button selectAllButton;
-    private Button deselectAllButton;
+    private Button megaphoneButton;
     private Button backButton;
 
     public static boolean megaphoneActive = false;
@@ -60,20 +60,28 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         int btnW = 110;
         int btnH = 20;
 
-        // Button to Stop Sound
-        stopButton = new TransparentButton(mainAreaX + 10, height - 105, 230, btnH, Component.literal("DETENER SONIDOS"), button -> {
-            if (!selectedPlayers.isEmpty() && minecraft.player != null) {
-                for (String pName : selectedPlayers) {
-                    minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop " + pName);
-                }
+        // Button to Play to All
+        playAllButton = new TransparentButton(mainAreaX + 10, height - 130, btnW, btnH, Component.literal("REPRODUCIR TODO"), button -> {
+            if (selectedSound != null && minecraft.player != null) {
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " play " + selectedSound + " @a");
+                lastPlayedSound = selectedSound;
+                lastPlayedTargets = "Todos";
+            }
+        });
+        addRenderableWidget(playAllButton);
+
+        // Button to Stop All
+        stopAllButton = new TransparentButton(mainAreaX + 130, height - 130, btnW, btnH, Component.literal("DETENER TODO"), button -> {
+            if (minecraft.player != null) {
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop @a");
                 lastPlayedSound = "Ninguno";
                 lastPlayedTargets = "Nadie";
             }
         });
-        addRenderableWidget(stopButton);
+        addRenderableWidget(stopAllButton);
 
-        // Button to Play Sound
-        playButton = new TransparentButton(mainAreaX + 10, height - 80, btnW, btnH, Component.literal("REPRODUCIR"), button -> {
+        // Button to Play Selected
+        playButton = new TransparentButton(mainAreaX + 10, height - 105, btnW, btnH, Component.literal("REPROD. SELECC."), button -> {
             if (selectedSound != null && !selectedPlayers.isEmpty()) {
                 for (String pName : selectedPlayers) {
                     if (minecraft.player != null) {
@@ -86,19 +94,20 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         });
         addRenderableWidget(playButton);
 
-        // Megaphone Toggle Button
-        String megLabel = megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO";
-        megaphoneButton = new TransparentButton(mainAreaX + 130, height - 80, btnW, btnH, Component.literal(megLabel), button -> {
-            if (minecraft.player != null) {
-                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " megaphone");
-                megaphoneActive = !megaphoneActive;
-                button.setMessage(Component.literal(megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO"));
+        // Button to Stop Selected
+        stopButton = new TransparentButton(mainAreaX + 130, height - 105, btnW, btnH, Component.literal("DETENER SELECC."), button -> {
+            if (!selectedPlayers.isEmpty() && minecraft.player != null) {
+                for (String pName : selectedPlayers) {
+                    minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " stop " + pName);
+                }
+                lastPlayedSound = "Ninguno";
+                lastPlayedTargets = "Nadie";
             }
         });
-        addRenderableWidget(megaphoneButton);
+        addRenderableWidget(stopButton);
 
         // Create Private Channel Button
-        createChannelButton = new TransparentButton(mainAreaX + 10, height - 55, btnW, btnH, Component.literal("INICIAR CANAL"), button -> {
+        createChannelButton = new TransparentButton(mainAreaX + 10, height - 80, btnW, btnH, Component.literal("INICIAR CANAL"), button -> {
             if (!selectedPlayers.isEmpty() && minecraft.player != null) {
                 String targets = String.join(",", selectedPlayers);
                 minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " channel create " + targets);
@@ -109,7 +118,7 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         addRenderableWidget(createChannelButton);
 
         // Close Private Channel Button
-        closeChannelButton = new TransparentButton(mainAreaX + 130, height - 55, btnW, btnH, Component.literal("CERRAR CANAL"), button -> {
+        closeChannelButton = new TransparentButton(mainAreaX + 130, height - 80, btnW, btnH, Component.literal("CERRAR CANAL"), button -> {
             if (minecraft.player != null) {
                 minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " channel close");
                 channelActive = false;
@@ -118,22 +127,16 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         });
         addRenderableWidget(closeChannelButton);
 
-        // Select All Button
-        selectAllButton = new TransparentButton(mainAreaX + 10, height - 130, btnW, btnH, Component.literal("MARCAR TODOS"), button -> {
-            selectedPlayers.clear();
-            for (PlayerInfo p : players) {
-                selectedPlayers.add(p.getProfile().getName());
+        // Megaphone Toggle Button
+        String megLabel = megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO";
+        megaphoneButton = new TransparentButton(mainAreaX + 10, height - 55, 230, btnH, Component.literal(megLabel), button -> {
+            if (minecraft.player != null) {
+                minecraft.player.connection.sendCommand(VoicechatCommands.VOICECHAT_COMMAND + " megaphone");
+                megaphoneActive = !megaphoneActive;
+                button.setMessage(Component.literal(megaphoneActive ? "MEGÁFONO: SI" : "MEGÁFONO: NO"));
             }
-            updateButtons();
         });
-        addRenderableWidget(selectAllButton);
-
-        // Deselect All Button
-        deselectAllButton = new TransparentButton(mainAreaX + 130, height - 130, btnW, btnH, Component.literal("DESMARCAR TODOS"), button -> {
-            selectedPlayers.clear();
-            updateButtons();
-        });
-        addRenderableWidget(deselectAllButton);
+        addRenderableWidget(megaphoneButton);
 
         // Back Button
         backButton = new TransparentButton(mainAreaX + (mainAreaWidth - 180) / 2, height - 30, 180, btnH, Component.literal("VOLVER"), button -> {
@@ -145,6 +148,12 @@ public class AdminEggScreen extends VoiceChatScreenBase {
     }
 
     private void updateButtons() {
+        if (playAllButton != null) {
+            playAllButton.active = selectedSound != null;
+        }
+        if (stopAllButton != null) {
+            stopAllButton.active = true;
+        }
         if (playButton != null) {
             playButton.active = selectedSound != null && !selectedPlayers.isEmpty();
         }
@@ -156,12 +165,6 @@ public class AdminEggScreen extends VoiceChatScreenBase {
         }
         if (closeChannelButton != null) {
             closeChannelButton.active = true;
-        }
-        if (selectAllButton != null) {
-            selectAllButton.active = !players.isEmpty();
-        }
-        if (deselectAllButton != null) {
-            deselectAllButton.active = !selectedPlayers.isEmpty();
         }
     }
 

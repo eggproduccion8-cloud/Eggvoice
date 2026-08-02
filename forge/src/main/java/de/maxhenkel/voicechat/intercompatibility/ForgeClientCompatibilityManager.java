@@ -234,6 +234,8 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
         }
     }
 
+    public static String currentlyPlayingSound = null;
+
     @SubscribeEvent
     public void onChatReceived(net.minecraftforge.client.event.ClientChatReceivedEvent event) {
         String text = event.getMessage().getString();
@@ -243,6 +245,7 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
             playEggSound(soundName);
         } else if (text.startsWith("[EGG_STOP_SOUND]")) {
             event.setCanceled(true);
+            currentlyPlayingSound = null;
             minecraft.execute(() -> {
                 for (com.mojang.blaze3d.audio.Channel channel : de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels) {
                     channel.stop();
@@ -254,6 +257,22 @@ public class ForgeClientCompatibilityManager extends ClientCompatibilityManager 
 
     private void playEggSound(String soundName) {
         try {
+            if (currentlyPlayingSound != null) {
+                if (currentlyPlayingSound.equals(soundName)) {
+                    // Already playing this song! Do absolutely nothing (prevents overlapping echo/reverb and robotic stutter!)
+                    return;
+                }
+                // Different song is playing! Smooth transition: stop all currently active Egg sound channels first
+                minecraft.execute(() -> {
+                    for (com.mojang.blaze3d.audio.Channel channel : de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels) {
+                        channel.stop();
+                    }
+                    de.maxhenkel.voicechat.gui.EggVoiceConfig.activeEggChannels.clear();
+                });
+            }
+
+            currentlyPlayingSound = soundName;
+
             net.minecraft.resources.ResourceLocation soundLoc = new net.minecraft.resources.ResourceLocation("eggvoice", soundName);
             net.minecraft.sounds.SoundEvent soundEvent = net.minecraft.sounds.SoundEvent.createVariableRangeEvent(soundLoc);
             minecraft.execute(() -> {
